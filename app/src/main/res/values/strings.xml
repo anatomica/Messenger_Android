@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Messenger</string>
+    <string name="settings">Settings</string>
+    <string name="send">Send</string>
+    <string name="auth">Login</string>
+    <string name="msgAuth">Ошибка аутентификации!</string>
+    <string name="logout">Logout</string>
+    <string name="exit">Exit</string>
+</resources>
