@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import android.os.StrictMode;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +16,8 @@ import ru.anatomica.messenger.gson.*;
 
 public class MainActivity extends AppCompatActivity {
 
+    public ConstraintLayout loginLayout;
+    public ConstraintLayout chatLayout;
     public Switch aSwitch;
     public Button exit;
     public Button sendAuth;
@@ -49,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        loginLayout = findViewById(R.id.activity_login);
+        chatLayout = findViewById(R.id.activity_chat);
         textMessage = findViewById(R.id.textSend);
         textArea = findViewById(R.id.textView);
         spinner = findViewById(R.id.spinner);
@@ -108,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         int id = view.getId();
         if (id == R.id.btn_send) sendText();
         if (id == R.id.btn_auth) sendAuth();
-        if (id == R.id.switch1) messageService.changeLayout();
+        if (id == R.id.switch1) messageService.loginToChat();
     }
 
     private void initialize() {
