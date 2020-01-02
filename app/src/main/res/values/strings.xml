@@ -6,4 +6,6 @@
     <string name="msgAuth">Ошибка аутентификации!</string>
     <string name="logout">Logout</string>
     <string name="exit">Exit</string>
+    <string name="clear">Clear Chat</string>
+    <string name="msgPass">Неверные логин/пароль!</string>
 </resources>

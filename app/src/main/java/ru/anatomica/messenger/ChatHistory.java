@@ -8,7 +8,7 @@ import java.util.List;
 
 class ChatHistory {
 
-    private static int howManyMsgLoad = 5;
+    private static int howManyMsgLoad = 100;
     private MainActivity mainActivity;
 
     public ChatHistory(MainActivity mainActivity) {

@@ -79,20 +79,22 @@ public class MessageService extends IntentService {
             mainActivity.nickName = nickname;
             mainActivity.runOnUiThread(this::changeLayout);
             chatHistory.loadChatHistory();
-        } else if (mainActivity.textArea.getVisibility() != View.VISIBLE) {
-            mainActivity.runOnUiThread(mainActivity::authError);
-            return;
-        }
-        else {
+            checkChange();
+        } else {
             if (message.startsWith("{") && message.endsWith("}")) {
                 Message msg = Message.fromJson(message);
                 ClientListMessage clientListMessage = msg.clientListMessage;
             } else {
                 // String messageText = mainActivity.intent.getStringExtra(message);
                 textArea.append(message + System.lineSeparator());
+                if (message.equals("Неверные логин/пароль!")) {
+                    mainActivity.runOnUiThread(mainActivity::wrongPass);
+                }
                 if (!message.equals("")) {
-                    if (!message.endsWith("лайн!"))
-                        chatHistory.writeChatHistory(message);
+                    if (!message.endsWith("лайн!")) {
+                        if (!message.equals("Неверные логин/пароль!"))
+                            chatHistory.writeChatHistory(message);
+                    }
                 }
             }
         }
@@ -107,6 +109,18 @@ public class MessageService extends IntentService {
         mainActivity.textArea.setVisibility(View.VISIBLE);
         mainActivity.textMessage.setVisibility(View.VISIBLE);
         mainActivity.sendMessageButton.setVisibility(View.VISIBLE);
+    }
+
+    public void checkChange() {
+        Thread sleep = new Thread();
+        try {
+            sleep.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        if (textArea.getVisibility() != View.VISIBLE) {
+            mainActivity.runOnUiThread(mainActivity::authError);
+        }
     }
 
     void close() throws IOException {

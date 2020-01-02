@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     public EditText loginField;
     public EditText passField;
     public String nickName;
+    public FileOutputStream fosClear;
     public FileOutputStream fos;
     public FileInputStream fis;
     public FileOutputStream fosLogin;
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Thread sleep = new Thread();
         try {
-            sleep.sleep(1000);
+            sleep.sleep(500);
             if (fisLogin.available() != 0) auth();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
@@ -96,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.btn_settings) return true;
+        if (id == R.id.btn_clear) clearChat();
         if (id == R.id.btn_logout) logout();
         if (id == R.id.btn_exit) shutdown();
         return super.onOptionsItemSelected(item);
@@ -219,7 +221,22 @@ public class MainActivity extends AppCompatActivity {
         messageService.sendMessage(authMsg.toJson());
     }
 
+    private void clearChat() {
+        String str = "";
+        textArea.setText(str);
+        try {
+            fosClear = openFileOutput(fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void authError() {
         Toast.makeText(MainActivity.this, R.string.msgAuth, Toast.LENGTH_LONG).show();
+    }
+
+    public void wrongPass() {
+        Toast.makeText(MainActivity.this, R.string.msgPass, Toast.LENGTH_LONG).show();
     }
 }
