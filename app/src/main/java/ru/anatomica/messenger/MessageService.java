@@ -100,21 +100,26 @@ public class MessageService extends IntentService {
         }
     }
 
+    public void changeToReg() {
+        mainActivity.changeLayout.setVisibility(View.INVISIBLE);
+        mainActivity.registerLayout.setVisibility(View.VISIBLE);
+        mainActivity.loginLayout.setVisibility(View.INVISIBLE);
+        mainActivity.chatLayout.setVisibility(View.INVISIBLE);
+    }
+
+    public void changeToLogin() {
+        mainActivity.changeLayout.setVisibility(View.INVISIBLE);
+        mainActivity.registerLayout.setVisibility(View.INVISIBLE);
+        mainActivity.loginLayout.setVisibility(View.VISIBLE);
+        mainActivity.chatLayout.setVisibility(View.INVISIBLE);
+    }
+
     public void loginToChat() {
+        mainActivity.changeLayout.setVisibility(View.INVISIBLE);
+        mainActivity.registerLayout.setVisibility(View.INVISIBLE);
         mainActivity.loginLayout.setVisibility(View.INVISIBLE);
         mainActivity.chatLayout.setVisibility(View.VISIBLE);
     }
-
-//    public void loginToChat() {
-//        mainActivity.background.setVisibility(View.INVISIBLE);
-//        mainActivity.loginField.setVisibility(View.INVISIBLE);
-//        mainActivity.passField.setVisibility(View.INVISIBLE);
-//        mainActivity.sendAuth.setVisibility(View.INVISIBLE);
-//        mainActivity.spinner.setVisibility(View.VISIBLE);
-//        mainActivity.textArea.setVisibility(View.VISIBLE);
-//        mainActivity.textMessage.setVisibility(View.VISIBLE);
-//        mainActivity.sendMessageButton.setVisibility(View.VISIBLE);
-//    }
 
     public void checkChange() {
         Thread sleep = new Thread();
@@ -123,7 +128,7 @@ public class MessageService extends IntentService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        if (textArea.getVisibility() != View.VISIBLE) {
+        if (mainActivity.loginLayout.getVisibility() == View.VISIBLE) {
             mainActivity.runOnUiThread(mainActivity::authError);
         }
     }

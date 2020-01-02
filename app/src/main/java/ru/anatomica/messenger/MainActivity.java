@@ -16,18 +16,22 @@ import ru.anatomica.messenger.gson.*;
 
 public class MainActivity extends AppCompatActivity {
 
+    public ConstraintLayout changeLayout;
+    public ConstraintLayout registerLayout;
     public ConstraintLayout loginLayout;
     public ConstraintLayout chatLayout;
     public Switch aSwitch;
     public Button exit;
     public Button sendAuth;
     public Button sendMessageButton;
-    public ImageView background;
     public Spinner spinner;
     public EditText textMessage;
     public EditText textArea;
     public EditText loginField;
     public EditText passField;
+    public EditText nicknameReg;
+    public EditText loginReg;
+    public EditText passReg;
     public String nickName;
     public FileOutputStream fosClear;
     public FileOutputStream fos;
@@ -52,14 +56,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        changeLayout = findViewById(R.id.activity_change);
+        registerLayout = findViewById(R.id.activity_register);
         loginLayout = findViewById(R.id.activity_login);
         chatLayout = findViewById(R.id.activity_chat);
+
         textMessage = findViewById(R.id.textSend);
         textArea = findViewById(R.id.textView);
         spinner = findViewById(R.id.spinner);
-        // background = findViewById(R.id.background);
+
         loginField = findViewById(R.id.login);
         passField = findViewById(R.id.password);
+
+        nicknameReg = findViewById(R.id.nicknameReg);
+        loginReg = findViewById(R.id.loginReg);
+        passReg = findViewById(R.id.passwordReg);
+
         aSwitch= findViewById(R.id.switch1);
         exit = findViewById(R.id.btn_exit);
         sendAuth = findViewById(R.id.btn_auth);
@@ -111,9 +124,17 @@ public class MainActivity extends AppCompatActivity {
     public void onClick(View view) {
         if (view == null) return;
         int id = view.getId();
-        if (id == R.id.btn_send) sendText();
-        if (id == R.id.btn_auth) sendAuth();
+
         if (id == R.id.switch1) messageService.loginToChat();
+        if (id == R.id.btn_register) messageService.changeToReg();
+        if (id == R.id.btn_login) messageService.changeToLogin();
+
+        if (id == R.id.btn_reg) {
+            register();
+            messageService.changeToLogin();
+        }
+        if (id == R.id.btn_auth) sendAuth();
+        if (id == R.id.btn_send) sendText();
     }
 
     private void initialize() {
@@ -183,6 +204,18 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void register() {
+        String loginText = loginReg.getText().toString();
+        String passwordText = passReg.getText().toString();
+        String nicknameText = nicknameReg.getText().toString();
+        RegisterMessage msg = new RegisterMessage();
+        msg.nickname = loginText;
+        msg.login = nicknameText;
+        msg.password = passwordText;
+        Message regMsg = Message.createRegister(msg);
+        messageService.sendMessage(regMsg.toJson());
     }
 
     public void sendAuth() {
