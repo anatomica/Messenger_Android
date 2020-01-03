@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (id == R.id.btn_reg) {
             register();
-            messageService.changeToLogin();
+            register();
         }
         if (id == R.id.btn_auth) sendAuth();
         if (id == R.id.btn_send) sendText();
@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        shutdown();
     }
 
     public void shutdown() {
@@ -211,8 +212,8 @@ public class MainActivity extends AppCompatActivity {
         String passwordText = passReg.getText().toString();
         String nicknameText = nicknameReg.getText().toString();
         RegisterMessage msg = new RegisterMessage();
-        msg.nickname = loginText;
-        msg.login = nicknameText;
+        msg.nickname = nicknameText;
+        msg.login = loginText;
         msg.password = passwordText;
         Message regMsg = Message.createRegister(msg);
         messageService.sendMessage(regMsg.toJson());
@@ -276,5 +277,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void wrongPass() {
         Toast.makeText(MainActivity.this, R.string.msgPass, Toast.LENGTH_LONG).show();
+    }
+
+    public void afterReg() {
+        Toast.makeText(MainActivity.this, "Вы зарегистрированы!\nОсуществляется выход!\nПожалуйста, войдите в\nприложение заного!", Toast.LENGTH_LONG).show();
+    }
+
+    public void badNick() {
+        Toast.makeText(MainActivity.this, "Данный Ник занят!\nПожалуйста, выберите другой Ник!", Toast.LENGTH_LONG).show();
     }
 }

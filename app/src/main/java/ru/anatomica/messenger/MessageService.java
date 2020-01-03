@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import ru.anatomica.messenger.gson.*;
 import java.io.*;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 public class MessageService extends IntentService {
 
@@ -90,6 +91,13 @@ public class MessageService extends IntentService {
                 if (message.equals("Неверные логин/пароль!")) {
                     mainActivity.runOnUiThread(mainActivity::wrongPass);
                 }
+                if (message.endsWith("выберите другой Ник!")) {
+                    mainActivity.runOnUiThread(mainActivity::badNick);
+                }
+                if (message.endsWith("зарегистрировался в Чате!")) {
+                    mainActivity.runOnUiThread(mainActivity::afterReg);
+                    logoutAfterReg();
+                }
                 if (!message.equals("")) {
                     if (!message.endsWith("лайн!")) {
                         if (!message.equals("Неверные логин/пароль!"))
@@ -131,6 +139,22 @@ public class MessageService extends IntentService {
         if (mainActivity.loginLayout.getVisibility() == View.VISIBLE) {
             mainActivity.runOnUiThread(mainActivity::authError);
         }
+    }
+
+    public void logoutAfterReg() {
+        mainActivity.runOnUiThread(mainActivity::afterReg);
+        Thread timeWait = new Thread(() -> {
+            try {
+                for (int i = 1; i < 5; i++) {
+                    System.out.println(i);
+                    TimeUnit.SECONDS.sleep(1);
+                }
+                close();
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+            }
+        });
+        timeWait.start();
     }
 
     void close() throws IOException {
