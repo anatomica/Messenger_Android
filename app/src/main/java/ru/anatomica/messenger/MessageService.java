@@ -89,23 +89,39 @@ public class MessageService extends IntentService {
                 // String messageText = mainActivity.intent.getStringExtra(message);
                 textArea.append(message + System.lineSeparator());
                 if (message.equals("Неверные логин/пароль!")) {
-                    mainActivity.runOnUiThread(mainActivity::wrongPass);
+                    mainActivity.runOnUiThread(() -> serviceMessage(message));
                 }
-                if (message.endsWith("выберите другой Ник!")) {
-                    mainActivity.runOnUiThread(mainActivity::badNick);
+                if (message.equals("Учетная запись уже используется!")) {
+                    mainActivity.runOnUiThread(() -> serviceMessage(message));
                 }
-                if (message.endsWith("зарегистрировался в Чате!")) {
-                    mainActivity.runOnUiThread(mainActivity::afterReg);
+                if (message.endsWith("выберите другой Логин!")) {
+                    mainActivity.runOnUiThread(() -> serviceMessage(message));
+                }
+                if (message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+                    mainActivity.runOnUiThread(() -> serviceMessage(message));
                     logoutAfterReg();
                 }
                 if (!message.equals("")) {
                     if (!message.endsWith("лайн!")) {
-                        if (!message.equals("Неверные логин/пароль!"))
-                            chatHistory.writeChatHistory(message);
+                        if (!message.equals("Неверные логин/пароль!")) {
+                            if (!message.equals("Учетная запись уже используется!")) {
+                                if (!message.endsWith("выберите другой Логин!")) {
+                                    if (!message.endsWith("Пожалуйста, войдите в\nприложение заного!"))
+                                        chatHistory.writeChatHistory(message);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+    }
+
+    public void changeToChoose() {
+        mainActivity.changeLayout.setVisibility(View.VISIBLE);
+        mainActivity.registerLayout.setVisibility(View.INVISIBLE);
+        mainActivity.loginLayout.setVisibility(View.INVISIBLE);
+        mainActivity.chatLayout.setVisibility(View.INVISIBLE);
     }
 
     public void changeToReg() {
@@ -137,24 +153,27 @@ public class MessageService extends IntentService {
             e.printStackTrace();
         }
         if (mainActivity.loginLayout.getVisibility() == View.VISIBLE) {
-            mainActivity.runOnUiThread(mainActivity::authError);
+            mainActivity.runOnUiThread(() -> serviceMessage("Ошибка аутентификации!"));
         }
     }
 
     public void logoutAfterReg() {
-        mainActivity.runOnUiThread(mainActivity::afterReg);
         Thread timeWait = new Thread(() -> {
             try {
                 for (int i = 1; i < 5; i++) {
                     System.out.println(i);
                     TimeUnit.SECONDS.sleep(1);
                 }
-                close();
-            } catch (InterruptedException | IOException e) {
+                mainActivity.logout();
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         });
         timeWait.start();
+    }
+
+    public void serviceMessage(String message) {
+        Toast.makeText(mainActivity, message, Toast.LENGTH_LONG).show();
     }
 
     void close() throws IOException {

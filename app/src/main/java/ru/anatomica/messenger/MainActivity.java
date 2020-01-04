@@ -101,8 +101,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        shutdown();
+        // super.onBackPressed();
+        if (registerLayout.getVisibility() == View.VISIBLE) {
+            messageService.changeToChoose();
+            return;
+        }
+        if (loginLayout.getVisibility() == View.VISIBLE) {
+            messageService.changeToChoose();
+            return;
+        }
+        else shutdown();
     }
 
     @Override
@@ -185,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         return message.replaceAll("/w\\s+", "[private]: ");
     }
 
-    private void logout() {
+    public void logout() {
         String log = "";
         String pass = "";
         try {
@@ -269,21 +277,5 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void authError() {
-        Toast.makeText(MainActivity.this, R.string.msgAuth, Toast.LENGTH_LONG).show();
-    }
-
-    public void wrongPass() {
-        Toast.makeText(MainActivity.this, R.string.msgPass, Toast.LENGTH_LONG).show();
-    }
-
-    public void afterReg() {
-        Toast.makeText(MainActivity.this, "Вы зарегистрированы!\nОсуществляется выход!\nПожалуйста, войдите в\nприложение заного!", Toast.LENGTH_LONG).show();
-    }
-
-    public void badNick() {
-        Toast.makeText(MainActivity.this, "Данный Ник занят!\nПожалуйста, выберите другой Ник!", Toast.LENGTH_LONG).show();
     }
 }
