@@ -87,7 +87,8 @@ public class MainActivity extends AppCompatActivity {
         Thread sleep = new Thread();
         try {
             sleep.sleep(500);
-            if (fisLogin.available() != 0) auth();
+            fisLogin = openFileInput(login);
+            if (fisLogin.available() != 0 && fisLogin != null) auth();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -151,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
             fis = openFileInput(fileHistory);
             serverAddress = getAssets().open("application.properties");
             messageService = new MessageService(this, true);
-            fisLogin = openFileInput(login);
+            // fisLogin = openFileInput(login);
         } catch (Exception e) {
             e.printStackTrace();
         }
