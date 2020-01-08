@@ -12,7 +12,6 @@ public class Network implements Closeable {
     private final String serverAddress;
     private final int port;
 
-    private String mess;
     private Socket socket;
     private Thread readServer;
     private Thread readServerThread;
@@ -26,7 +25,7 @@ public class Network implements Closeable {
         initNetworkState(serverAddress, port);
     }
 
-    private void initNetworkState(String serverAddress, int port) throws IOException{
+    private void initNetworkState(String serverAddress, int port) {
         Thread thread = new Thread(() -> {
             try {
                 this.socket = new Socket(serverAddress, port);
@@ -44,12 +43,14 @@ public class Network implements Closeable {
     }
 
     private void readMessagesFromServer() {
+        String message = null;
         while (true) {
             try {
-                if (inputStream != null) mess = inputStream.readUTF();
-                 readServer = new Thread(() -> {
+                if (inputStream != null) message = inputStream.readUTF();
+                String copyMessage = message;
+                readServer = new Thread(() -> {
                     try {
-                        if (mess != null) messageService.processRetrievedMessage(mess);
+                        if (copyMessage != null) messageService.processRetrievedMessage(copyMessage);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

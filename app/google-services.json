@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "471626666907",
+    "firebase_url": "https://messenger-a1297.firebaseio.com",
+    "project_id": "messenger-a1297",
+    "storage_bucket": "messenger-a1297.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471626666907:android:ce02a7381a4d44ba28c73e",
+        "android_client_info": {
+          "package_name": "ru.anatomica.messenger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "471626666907-2t8h0po9p4tn9h7uppa8g1g1cm9hhc8m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "ru.anatomica.messenger",
+            "certificate_hash": "e557284c6738df20ec7d8f29ea87a32d1a7c7266"
+          }
+        },
+        {
+          "client_id": "471626666907-odi4i1h50ocplcffh1qscblf5p5a60c1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEXkVMZWDU3AcEH9IKupt_OEilEQde46I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "471626666907-odi4i1h50ocplcffh1qscblf5p5a60c1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

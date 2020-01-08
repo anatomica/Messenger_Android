@@ -40,12 +40,11 @@ public class MainActivity extends AppCompatActivity {
     public FileInputStream fisLogin;
     public FileOutputStream fosPasswd;
     public FileInputStream fisPasswd;
-    public InputStream serverAddress;
+    public InputStream serverAddressProp;
     private MessageService messageService;
     public String fileHistory = "History.txt";
     protected String login = "Login.txt";
     protected String password = "Password.txt";
-    protected Network network;
     protected Intent intent;
 
     @Override
@@ -86,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Thread sleep = new Thread();
         try {
-            sleep.sleep(500);
+            sleep.sleep(700);
             fisLogin = openFileInput(login);
             if (fisLogin.available() != 0 && fisLogin != null) auth();
         } catch (IOException | InterruptedException e) {
@@ -110,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
         if (loginLayout.getVisibility() == View.VISIBLE) {
             messageService.changeToChoose();
             return;
+        }
+        if (changeLayout.getVisibility() == View.VISIBLE) {
+            System.exit(0);
         }
         else shutdown();
     }
@@ -143,26 +145,21 @@ public class MainActivity extends AppCompatActivity {
             register();
         }
         if (id == R.id.btn_auth) sendAuth();
-        if (id == R.id.btn_send) sendText();
+        if (id == R.id.btn_send) sendMessage();
     }
 
     private void initialize() {
         try {
             fos = openFileOutput(fileHistory, Context.MODE_APPEND);
             fis = openFileInput(fileHistory);
-            serverAddress = getAssets().open("application.properties");
+            serverAddressProp = getAssets().open("application.properties");
             messageService = new MessageService(this, true);
-            // fisLogin = openFileInput(login);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void sendMessage () {
-        sendMessageAction();
-    }
-
-    private void sendText () {
         sendMessageAction();
     }
 
@@ -229,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendAuth() {
+        messageService.startConnectionToServer();
         String loginText = loginField.getText().toString();
         String passwordText = passField.getText().toString();
         try {
@@ -247,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void auth() throws IOException {
+        messageService.startConnectionToServer();
         fisLogin = openFileInput(login);
         fisPasswd = openFileInput(password);
 

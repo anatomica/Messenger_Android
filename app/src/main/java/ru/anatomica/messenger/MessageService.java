@@ -44,23 +44,23 @@ public class MessageService extends IntentService {
 
     private void initialize() {
         readProperties();
-        startConnectionToServer();
+        // startConnectionToServer();
     }
 
     private void readProperties() {
         Properties serverProperties = new Properties();
         try {
-            serverProperties.load(mainActivity.serverAddress);
+            serverProperties.load(mainActivity.serverAddressProp);
             hostAddress = serverProperties.getProperty(HOST_ADDRESS_PROP);
             hostPort = Integer.parseInt(serverProperties.getProperty(HOST_PORT_PROP));
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read application.properties2 file", e);
+            throw new RuntimeException("Failed to read application.properties file", e);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid port value", e);
         }
     }
 
-    private void startConnectionToServer() {
+    public void startConnectionToServer() {
         try {
             this.network = new Network(hostAddress, hostPort, this);
         } catch (IOException e) {
@@ -104,10 +104,12 @@ public class MessageService extends IntentService {
                 if (!message.equals("")) {
                     if (!message.endsWith("лайн!")) {
                         if (!message.equals("Неверные логин/пароль!")) {
-                            if (!message.equals("Учетная запись уже используется!")) {
-                                if (!message.endsWith("выберите другой Логин!")) {
-                                    if (!message.endsWith("Пожалуйста, войдите в\nприложение заного!"))
-                                        chatHistory.writeChatHistory(message);
+                            if (!message.equals("Новые сообщения:")) {
+                                if (!message.equals("Учетная запись уже используется!")) {
+                                    if (!message.endsWith("выберите другой Логин!")) {
+                                        if (!message.endsWith("Пожалуйста, войдите в\nприложение заного!"))
+                                            chatHistory.writeChatHistory(message);
+                                    }
                                 }
                             }
                         }
@@ -146,15 +148,19 @@ public class MessageService extends IntentService {
     }
 
     public void checkChange() {
-        Thread sleep = new Thread();
-        try {
-            sleep.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (mainActivity.loginLayout.getVisibility() == View.VISIBLE) {
-            mainActivity.runOnUiThread(() -> serviceMessage("Ошибка аутентификации!"));
-        }
+        Thread timeWait = new Thread(() -> {
+            try {
+                for (int i = 1; i <= 1; i++) {
+                    System.out.println(i);
+                    TimeUnit.SECONDS.sleep(1);
+                }
+                if (mainActivity.loginLayout.getVisibility() == View.VISIBLE)
+                    mainActivity.runOnUiThread(() -> serviceMessage("Ошибка аутентификации!"));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        timeWait.start();
     }
 
     public void logoutAfterReg() {
