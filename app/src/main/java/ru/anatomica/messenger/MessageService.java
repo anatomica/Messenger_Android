@@ -20,8 +20,7 @@ public class MessageService extends IntentService {
     private String hostAddress;
     private int hostPort;
 
-    public static EditText textArea;
-    public static EditText textMessage;
+    public EditText textMessage;
     private MainActivity mainActivity;
     private boolean needStopServerOnClosed;
     private ChatHistory chatHistory;
@@ -31,7 +30,6 @@ public class MessageService extends IntentService {
     MessageService(MainActivity mainActivity, boolean needStopServerOnClosed) {
         super(MESSAGING_SERVICE_NAME);
         this.textMessage = mainActivity.textMessage;
-        this.textArea = mainActivity.textArea;
         this.mainActivity = mainActivity;
         this.chatHistory = new ChatHistory(mainActivity);
         this.needStopServerOnClosed = needStopServerOnClosed;
@@ -87,7 +85,6 @@ public class MessageService extends IntentService {
                 ClientListMessage clientListMessage = msg.clientListMessage;
             } else {
                 // String messageText = mainActivity.intent.getStringExtra(message);
-                textArea.append(message + System.lineSeparator());
                 if (message.equals("Неверные логин/пароль!")) {
                     mainActivity.runOnUiThread(() -> serviceMessage(message));
                 }
@@ -115,6 +112,7 @@ public class MessageService extends IntentService {
                         }
                     }
                 }
+                mainActivity.textArea.append(message + System.lineSeparator());
             }
         }
     }

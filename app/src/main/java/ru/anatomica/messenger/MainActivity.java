@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         try {
             fisLogin = openFileInput(login);
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(500);
             if (fisLogin.available() != 0 && fisLogin != null) auth();
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
