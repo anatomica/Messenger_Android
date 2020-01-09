@@ -12,6 +12,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.*;
 import java.io.*;
+import java.util.concurrent.TimeUnit;
+
 import ru.anatomica.messenger.gson.*;
 
 public class MainActivity extends AppCompatActivity {
@@ -83,12 +85,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        Thread sleep = new Thread();
         try {
-            sleep.sleep(700);
             fisLogin = openFileInput(login);
+            TimeUnit.SECONDS.sleep(1);
             if (fisLogin.available() != 0 && fisLogin != null) auth();
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
     }
@@ -230,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
         String loginText = loginField.getText().toString();
         String passwordText = passField.getText().toString();
         try {
+//            TimeUnit.SECONDS.sleep(1);
             fosLogin = openFileOutput(login, Context.MODE_PRIVATE);
             fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
             fosLogin.write(loginText.getBytes());
@@ -245,7 +247,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void auth() throws IOException {
-        messageService.startConnectionToServer();
+//        messageService.startConnectionToServer();
+//        TimeUnit.SECONDS.sleep(1);
+
         fisLogin = openFileInput(login);
         fisPasswd = openFileInput(password);
 

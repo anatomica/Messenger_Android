@@ -44,7 +44,7 @@ public class MessageService extends IntentService {
 
     private void initialize() {
         readProperties();
-        // startConnectionToServer();
+        startConnectionToServer();
     }
 
     private void readProperties() {
@@ -148,34 +148,22 @@ public class MessageService extends IntentService {
     }
 
     public void checkChange() {
-        Thread timeWait = new Thread(() -> {
-            try {
-                for (int i = 1; i <= 1; i++) {
-                    System.out.println(i);
-                    TimeUnit.SECONDS.sleep(1);
-                }
-                if (mainActivity.loginLayout.getVisibility() == View.VISIBLE)
-                    mainActivity.runOnUiThread(() -> serviceMessage("Ошибка аутентификации!"));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-        timeWait.start();
+        try {
+            TimeUnit.SECONDS.sleep(1);
+            if (mainActivity.loginLayout.getVisibility() == View.VISIBLE)
+                mainActivity.runOnUiThread(() -> serviceMessage("Ошибка аутентификации!"));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void logoutAfterReg() {
-        Thread timeWait = new Thread(() -> {
-            try {
-                for (int i = 1; i < 5; i++) {
-                    System.out.println(i);
-                    TimeUnit.SECONDS.sleep(1);
-                }
-                mainActivity.logout();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        });
-        timeWait.start();
+        try {
+            TimeUnit.SECONDS.sleep(5);
+            mainActivity.logout();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void serviceMessage(String message) {
