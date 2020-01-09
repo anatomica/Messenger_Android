@@ -227,11 +227,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendAuth() {
-        messageService.startConnectionToServer();
+//        messageService.startConnectionToServer();
+//        TimeUnit.SECONDS.sleep(1);
+
         String loginText = loginField.getText().toString();
         String passwordText = passField.getText().toString();
         try {
-//            TimeUnit.SECONDS.sleep(1);
             fosLogin = openFileOutput(login, Context.MODE_PRIVATE);
             fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
             fosLogin.write(loginText.getBytes());
