@@ -22,7 +22,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.io.*;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     public String fileHistory = "History.txt";
     protected String login = "Login.txt";
     protected String password = "Password.txt";
+    protected String refreshToken;
     protected Intent intent;
 
     @Override
@@ -107,6 +107,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Key: " + key + " Value: " + value);
             }
         }
+
+        refreshToken = FirebaseInstanceId.getInstance().getToken();
+//        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(this, instanceIdResult -> {
+//            refreshToken = instanceIdResult.getToken();
+//            Log.e("refreshToken", refreshToken);
+//        });
 
         Button logTokenButton = findViewById(R.id.logTokenButton);
         logTokenButton.setOnClickListener(new View.OnClickListener() {
@@ -301,6 +307,7 @@ public class MainActivity extends AppCompatActivity {
         AuthMessage msg = new AuthMessage();
         msg.login = loginText;
         msg.password = passwordText;
+        msg.token = refreshToken;
         Message authMsg = Message.createAuth(msg);
         messageService.sendMessage(authMsg.toJson());
     }
@@ -327,6 +334,7 @@ public class MainActivity extends AppCompatActivity {
         AuthMessage msg = new AuthMessage();
         msg.login = loginText;
         msg.password = passwdText;
+        msg.token = refreshToken;
         Message authMsg = Message.createAuth(msg);
         messageService.sendMessage(authMsg.toJson());
     }
