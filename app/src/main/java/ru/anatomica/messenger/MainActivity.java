@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        shutdown();
+        // shutdown();
     }
 
     @Override
@@ -293,15 +293,15 @@ public class MainActivity extends AppCompatActivity {
         fisPasswd = openFileInput(password);
 
         int available = fisLogin.available();
-        byte[] buffer = new byte[available];
-        fisLogin.read(buffer);
-        String loginText = new String(buffer);
+        byte[] bufLogin = new byte[available];
+        fisLogin.read(bufLogin);
+        String loginText = new String(bufLogin);
         fisLogin.close();
 
         int available1 = fisPasswd.available();
-        byte[] buffer1 = new byte[available1];
-        fisPasswd.read(buffer1);
-        String passwdText = new String(buffer);
+        byte[] bufPass = new byte[available1];
+        fisPasswd.read(bufPass);
+        String passwdText = new String(bufPass);
         fisPasswd.close();
 
         AuthMessage msg = new AuthMessage();
