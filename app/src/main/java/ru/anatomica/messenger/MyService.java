@@ -9,20 +9,25 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
-
 import androidx.core.app.NotificationCompat;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
-
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import static android.content.ContentValues.TAG;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class MyService extends FirebaseMessagingService {
-    public MyService() {
-    }
 
     private static final String TAG = "MyService";
+    public String pathToHistory = "History_New.txt";
+    public FileOutputStream fos;
+
+    public MyService() {
+    }
 
     /**
      * Called when message is received.
@@ -48,6 +53,17 @@ public class MyService extends FirebaseMessagingService {
         // messages. For more see: https://firebase.google.com/docs/cloud-messaging/concept-options
         // [END_EXCLUDE]
 
+        String msg = String.valueOf(remoteMessage.getData());
+        try {
+//                URI uri = MainActivity.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+//                pathToHistory = new File(uri).getParent();
+            fos = openFileOutput(pathToHistory, Context.MODE_APPEND);
+            String str = msg + "\n";
+            fos.write(str.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(TAG, "From: " + remoteMessage.getFrom());
@@ -69,6 +85,17 @@ public class MyService extends FirebaseMessagingService {
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+
+            String msg1 = remoteMessage.getNotification().getBody();
+            try {
+//                URI uri = MainActivity.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+//                pathToHistory = new File(uri).getParent();
+                fos = openFileOutput(pathToHistory, Context.MODE_APPEND);
+                String str = msg1 + "\n";
+                fos.write(str.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM
