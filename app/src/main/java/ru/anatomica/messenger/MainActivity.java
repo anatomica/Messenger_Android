@@ -1,5 +1,6 @@
 package ru.anatomica.messenger;
 
+import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -11,11 +12,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+
 import android.os.StrictMode;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.*;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -23,7 +28,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 
+import org.xmlpull.v1.XmlPullParser;
+
 import java.io.*;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import ru.anatomica.messenger.gson.*;
@@ -31,6 +39,7 @@ import ru.anatomica.messenger.gson.*;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    public CoordinatorLayout mainLayout;
     public ConstraintLayout changeLayout;
     public ConstraintLayout registerLayout;
     public ConstraintLayout loginLayout;
@@ -72,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mainLayout = findViewById(R.id.activity_main);
         changeLayout = findViewById(R.id.activity_change);
         registerLayout = findViewById(R.id.activity_register);
         loginLayout = findViewById(R.id.activity_login);
@@ -184,6 +194,43 @@ public class MainActivity extends AppCompatActivity {
         }
         if (id == R.id.btn_auth) sendAuth();
         if (id == R.id.btn_send) sendMessage();
+        if (id == R.id.btn_create) createBtn();
+    }
+
+    ArrayList<Button> buttons;
+    ArrayList<String> buttonName;
+    ConstraintLayout.MarginLayoutParams params;
+    private void createBtn() {
+//        LayoutInflater inflater = getLayoutInflater();
+//        View view = inflater.inflate(R.layout.content_button, null, false);
+//        changeLayout.addView(inflater.inflate(R.layout.content_button, null),
+//                new ViewGroup.LayoutParams(
+//                        ViewGroup.LayoutParams.MATCH_PARENT,
+//                        ViewGroup.LayoutParams.MATCH_PARENT));
+
+        buttons = new ArrayList<>();
+        buttonName = new ArrayList<>();
+        buttonName.add("Оля ");
+        buttonName.add("Макс ");
+        buttonName.add("Олег ");
+
+        for (int i = 0; i < buttonName.size(); i++) {
+            buttons.add(new Button(MainActivity.this));
+            buttons.get(i).setText(String.valueOf(i));
+        }
+        viewButton();
+    }
+
+    private void viewButton() {
+        int btnMargin = 10;
+        params = (ConstraintLayout.MarginLayoutParams) changeLayout.getLayoutParams();
+        params.height = 200;
+        for (int i = 0; i < buttons.size(); i++) {
+            params.topMargin = btnMargin;
+            buttons.get(i).setLayoutParams(params);
+            changeLayout.addView(buttons.get(i), params);
+            btnMargin = btnMargin + 220;
+        }
     }
 
     private void initialize() {
