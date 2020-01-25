@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
             buttons.get(i).setId(i + 1);
             final int id_ = buttons.get(i).getId();
             buttons.get(i).setText(buttonName.get(i));
-            buttons.get(i).setBackgroundColor(Color.alpha(1));
+            // buttons.get(i).setBackgroundColor(Color.alpha(1));
             params.height = 200;
             buttons.get(i).setLayoutParams(params);
             buttons.get(i).setY(btnMargin);
@@ -241,12 +241,6 @@ public class MainActivity extends AppCompatActivity {
                             "Button clicked index = " + id_, Toast.LENGTH_SHORT).show();
                 }
             });
-        }
-
-        for (int i = 0; i < buttons.size(); i++) {
-            // params.height = 200;
-            // buttons.get(i).setLayoutParams(params);
-            // changeLayout.addView(buttons.get(i));
         }
     }
 

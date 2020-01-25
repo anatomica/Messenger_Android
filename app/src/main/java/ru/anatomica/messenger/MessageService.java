@@ -1,5 +1,6 @@
 package ru.anatomica.messenger;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.content.Intent;
 import android.view.View;
@@ -78,11 +79,19 @@ public class MessageService extends IntentService {
             mainActivity.nickName = nickname;
             mainActivity.runOnUiThread(this::loginToChat);
             chatHistory.loadChatHistory();
+            Activity activity;
             checkChange();
         } else {
             if (message.startsWith("{") && message.endsWith("}")) {
                 Message msg = Message.fromJson(message);
                 ClientListMessage clientListMessage = msg.clientListMessage;
+                System.out.println(clientListMessage.online);
+
+                Spinner spinner = mainActivity.findViewById(R.id.spinner);
+                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, clientListMessage.online);
+                spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinner.setAdapter(spinnerArrayAdapter);
+
             } else {
                 // String messageText = mainActivity.intent.getStringExtra(message);
                 if (message.equals("Неверные логин/пароль!")) {
