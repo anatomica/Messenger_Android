@@ -1,44 +1,34 @@
 package ru.anatomica.messenger;
 
-import android.annotation.SuppressLint;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-
 import android.os.StrictMode;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.*;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
-
-import org.xmlpull.v1.XmlPullParser;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
-
 import ru.anatomica.messenger.gson.*;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+
+    public LinearLayout buttonLayout;
     public CoordinatorLayout mainLayout;
     public ConstraintLayout changeLayout;
     public ConstraintLayout registerLayout;
@@ -86,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
         registerLayout = findViewById(R.id.activity_register);
         loginLayout = findViewById(R.id.activity_login);
         chatLayout = findViewById(R.id.activity_chat);
+        buttonLayout = findViewById(R.id.ButtonContainer);
 
         textMessage = findViewById(R.id.textSend);
         textArea = findViewById(R.id.textView);
@@ -98,13 +89,13 @@ public class MainActivity extends AppCompatActivity {
         loginReg = findViewById(R.id.loginReg);
         passReg = findViewById(R.id.passwordReg);
 
-        aSwitch= findViewById(R.id.switch1);
+        aSwitch = findViewById(R.id.switch1);
         exit = findViewById(R.id.btn_exit);
         sendAuth = findViewById(R.id.btn_auth);
         sendMessageButton = findViewById(R.id.btn_send);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelId  = getString(R.string.default_notification_channel_id);
+            String channelId = getString(R.string.default_notification_channel_id);
             String channelName = getString(R.string.default_notification_channel_name);
             NotificationManager notificationManager =
                     getSystemService(NotificationManager.class);
@@ -160,8 +151,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (changeLayout.getVisibility() == View.VISIBLE) {
             System.exit(0);
-        }
-        else shutdown();
+        } else shutdown();
     }
 
     @Override
@@ -199,37 +189,64 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<Button> buttons;
     ArrayList<String> buttonName;
-    ConstraintLayout.MarginLayoutParams params;
+    LinearLayout.MarginLayoutParams params;
+
     private void createBtn() {
+
 //        LayoutInflater inflater = getLayoutInflater();
-//        View view = inflater.inflate(R.layout.content_button, null, false);
-//        changeLayout.addView(inflater.inflate(R.layout.content_button, null),
-//                new ViewGroup.LayoutParams(
-//                        ViewGroup.LayoutParams.MATCH_PARENT,
-//                        ViewGroup.LayoutParams.MATCH_PARENT));
+//        View child = inflater.inflate(R.layout.content_button, changeLayout, false);
+//        LinearLayout child = (LinearLayout) getLayoutInflater().inflate(R.layout.content_button, changeLayout, false);
+//        params = (LinearLayout.MarginLayoutParams) changeLayout.getLayoutParams();
+//        ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(
+//                ViewGroup.MarginLayoutParams.MATCH_PARENT, ViewGroup.MarginLayoutParams.WRAP_CONTENT);
+//        params.height = 1920;
+//        params.topMargin = 0;
+//        child.setLayoutParams(params);
+//        changeLayout.addView(child);
 
         buttons = new ArrayList<>();
         buttonName = new ArrayList<>();
         buttonName.add("Оля ");
         buttonName.add("Макс ");
-        buttonName.add("Олег ");
+        buttonName.add("Ника ");
 
         for (int i = 0; i < buttonName.size(); i++) {
-            buttons.add(new Button(MainActivity.this));
+            buttons.add(new Button(this));
             buttons.get(i).setText(String.valueOf(i));
         }
         viewButton();
     }
 
     private void viewButton() {
+        params = new LinearLayout.MarginLayoutParams(
+                LinearLayout.MarginLayoutParams.MATCH_PARENT,
+                LinearLayout.MarginLayoutParams.WRAP_CONTENT);
+
         int btnMargin = 10;
-        params = (ConstraintLayout.MarginLayoutParams) changeLayout.getLayoutParams();
-        params.height = 200;
         for (int i = 0; i < buttons.size(); i++) {
-            params.topMargin = btnMargin;
+            buttons.get(i).setId(i + 1);
+            final int id_ = buttons.get(i).getId();
+            buttons.get(i).setText(buttonName.get(i));
+            buttons.get(i).setBackgroundColor(Color.alpha(1));
+            params.height = 200;
             buttons.get(i).setLayoutParams(params);
+            buttons.get(i).setY(btnMargin);
+            btnMargin = btnMargin + 200;
             changeLayout.addView(buttons.get(i), params);
-            btnMargin = btnMargin + 220;
+
+            Button button = findViewById(id_);
+            button.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View view) {
+                    Toast.makeText(view.getContext(),
+                            "Button clicked index = " + id_, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        for (int i = 0; i < buttons.size(); i++) {
+            // params.height = 200;
+            // buttons.get(i).setLayoutParams(params);
+            // changeLayout.addView(buttons.get(i));
         }
     }
 
