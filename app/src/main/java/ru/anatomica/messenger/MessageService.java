@@ -21,9 +21,10 @@ public class MessageService extends IntentService {
     private String hostAddress;
     private int hostPort;
 
-    public EditText textMessage;
-    private MainActivity mainActivity;
+    public ClientListMessage clientListMessage;
     private boolean needStopServerOnClosed;
+    private MainActivity mainActivity;
+    public EditText textMessage;
     private ChatHistory chatHistory;
     private Network network;
     private String nickname;
@@ -84,14 +85,8 @@ public class MessageService extends IntentService {
         } else {
             if (message.startsWith("{") && message.endsWith("}")) {
                 Message msg = Message.fromJson(message);
-                ClientListMessage clientListMessage = msg.clientListMessage;
-                System.out.println(clientListMessage.online);
-
-                Spinner spinner = mainActivity.findViewById(R.id.spinner);
-                ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, clientListMessage.online);
-                spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinner.setAdapter(spinnerArrayAdapter);
-
+                clientListMessage = msg.clientListMessage;
+                mainActivity.runOnUiThread(this::clientList);
             } else {
                 // String messageText = mainActivity.intent.getStringExtra(message);
                 if (message.equals("Неверные логин/пароль!")) {
@@ -126,11 +121,16 @@ public class MessageService extends IntentService {
         }
     }
 
+    void clientList(){
+        mainActivity.clientList();
+    }
+
     public void changeToChoose() {
         mainActivity.changeLayout.setVisibility(View.VISIBLE);
         mainActivity.registerLayout.setVisibility(View.INVISIBLE);
         mainActivity.loginLayout.setVisibility(View.INVISIBLE);
         mainActivity.chatLayout.setVisibility(View.INVISIBLE);
+        mainActivity.messageLayout.setVisibility(View.INVISIBLE);
     }
 
     public void changeToReg() {
@@ -138,6 +138,7 @@ public class MessageService extends IntentService {
         mainActivity.registerLayout.setVisibility(View.VISIBLE);
         mainActivity.loginLayout.setVisibility(View.INVISIBLE);
         mainActivity.chatLayout.setVisibility(View.INVISIBLE);
+        mainActivity.messageLayout.setVisibility(View.INVISIBLE);
     }
 
     public void changeToLogin() {
@@ -145,6 +146,7 @@ public class MessageService extends IntentService {
         mainActivity.registerLayout.setVisibility(View.INVISIBLE);
         mainActivity.loginLayout.setVisibility(View.VISIBLE);
         mainActivity.chatLayout.setVisibility(View.INVISIBLE);
+        mainActivity.messageLayout.setVisibility(View.INVISIBLE);
     }
 
     public void loginToChat() {
@@ -152,6 +154,15 @@ public class MessageService extends IntentService {
         mainActivity.registerLayout.setVisibility(View.INVISIBLE);
         mainActivity.loginLayout.setVisibility(View.INVISIBLE);
         mainActivity.chatLayout.setVisibility(View.VISIBLE);
+        mainActivity.messageLayout.setVisibility(View.INVISIBLE);
+    }
+
+    public void loginToMessage() {
+        mainActivity.changeLayout.setVisibility(View.INVISIBLE);
+        mainActivity.registerLayout.setVisibility(View.INVISIBLE);
+        mainActivity.loginLayout.setVisibility(View.INVISIBLE);
+        mainActivity.chatLayout.setVisibility(View.INVISIBLE);
+        mainActivity.messageLayout.setVisibility(View.VISIBLE);
     }
 
     public void checkChange() {

@@ -26,5 +26,6 @@
     <include layout="@layout/content_register" />
     <include layout="@layout/content_login" />
     <include layout="@layout/content_chat" />
+    <include layout="@layout/content_message" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

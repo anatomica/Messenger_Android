@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.*;
 import com.google.firebase.iid.FirebaseInstanceId;
 import java.io.*;
@@ -33,8 +32,8 @@ public class MainActivity extends AppCompatActivity {
     public ConstraintLayout changeLayout;
     public ConstraintLayout registerLayout;
     public ConstraintLayout loginLayout;
-    public ConstraintLayout chatLayout;
-    public Switch aSwitch;
+    public ScrollView chatLayout;
+    public ConstraintLayout messageLayout;
     public Button exit;
     public Button sendAuth;
     public Button sendMessageButton;
@@ -76,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
         registerLayout = findViewById(R.id.activity_register);
         loginLayout = findViewById(R.id.activity_login);
         chatLayout = findViewById(R.id.activity_chat);
+        messageLayout = findViewById(R.id.activity_message);
         buttonLayout = findViewById(R.id.ButtonContainer);
 
         textMessage = findViewById(R.id.textSend);
@@ -89,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
         loginReg = findViewById(R.id.loginReg);
         passReg = findViewById(R.id.passwordReg);
 
-        aSwitch = findViewById(R.id.switch1);
         exit = findViewById(R.id.btn_exit);
         sendAuth = findViewById(R.id.btn_auth);
         sendMessageButton = findViewById(R.id.btn_send);
@@ -379,5 +378,11 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void clientList() {
+        ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, messageService.clientListMessage.online);
+        spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(spinnerArrayAdapter);
     }
 }
