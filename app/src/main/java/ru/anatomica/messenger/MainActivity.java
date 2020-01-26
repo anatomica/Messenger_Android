@@ -4,7 +4,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
     public ConstraintLayout registerLayout;
     public ConstraintLayout loginLayout;
     public ScrollView chatLayout;
+    public ConstraintLayout chatLayoutInto;
     public ConstraintLayout messageLayout;
+
     public Button exit;
     public Button sendAuth;
     public Button sendMessageButton;
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     public EditText loginReg;
     public EditText passReg;
     public String nickName;
+
     public FileOutputStream fosClear;
     public FileOutputStream fos;
     public FileInputStream fis;
@@ -53,13 +55,20 @@ public class MainActivity extends AppCompatActivity {
     public FileInputStream fisLogin;
     public FileOutputStream fosPasswd;
     public FileInputStream fisPasswd;
+
+    protected ArrayList<Button> buttons = new ArrayList<>();
+    protected ArrayList<String> buttonName = new ArrayList<>();
     public InputStream serverAddressProp;
-    private MessageService messageService;
+
     public String fileHistory = "History.txt";
     protected String login = "Login.txt";
     protected String password = "Password.txt";
     protected String refreshToken;
     protected Intent intent;
+    protected String selectNick;
+
+    private MessageService messageService;
+    private ChatHistory chatHistory;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -75,12 +84,12 @@ public class MainActivity extends AppCompatActivity {
         registerLayout = findViewById(R.id.activity_register);
         loginLayout = findViewById(R.id.activity_login);
         chatLayout = findViewById(R.id.activity_chat);
+        chatLayoutInto = findViewById(R.id.activity_chat_layout);
         messageLayout = findViewById(R.id.activity_message);
         buttonLayout = findViewById(R.id.ButtonContainer);
 
         textMessage = findViewById(R.id.textSend);
         textArea = findViewById(R.id.textView);
-        spinner = findViewById(R.id.spinner);
 
         loginField = findViewById(R.id.login);
         passField = findViewById(R.id.password);
@@ -115,6 +124,17 @@ public class MainActivity extends AppCompatActivity {
 //            Log.e("refreshToken", refreshToken);
 //        });
 //        intent = new Intent(this, MainActivity.class);
+
+        spinner = findViewById(R.id.spinner);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                Object item = parent.getItemAtPosition(pos);
+                selectNick = spinner.getSelectedItem().toString();
+                if (!selectNick.equals("< ДЛЯ ВСЕХ >")) openFile(selectNick);
+            }
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
+        });
 
         initialize();
     }
@@ -173,7 +193,6 @@ public class MainActivity extends AppCompatActivity {
         if (view == null) return;
         int id = view.getId();
 
-        if (id == R.id.switch1) messageService.loginToChat();
         if (id == R.id.btn_register) messageService.changeToReg();
         if (id == R.id.btn_login) messageService.changeToLogin();
 
@@ -186,29 +205,66 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.btn_create) createBtn();
     }
 
-    ArrayList<Button> buttons;
-    ArrayList<String> buttonName;
-    LinearLayout.MarginLayoutParams params;
+    private void initialize() {
+        try {
+            serverAddressProp = getAssets().open("application.properties");
+            messageService = new MessageService(this, true);
+            chatHistory = new ChatHistory(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        openFile("");
+    }
 
-    private void createBtn() {
+    private void openFile(String nameFile) {
+        try {
+            fos = openFileOutput(nameFile + fileHistory, Context.MODE_APPEND);
+            fis = openFileInput(nameFile + fileHistory);
+            if (fis.available() > 0 && !nameFile.equals("")) {
+                chatHistory.loadChatHistory();
+                messageService.loginToMessage();
+            }
+            if (!nameFile.equals("")) {
+                addNewContact(nameFile);
+                loadAllContacts();
+                createBtn();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-//        LayoutInflater inflater = getLayoutInflater();
-//        View child = inflater.inflate(R.layout.content_button, changeLayout, false);
-//        LinearLayout child = (LinearLayout) getLayoutInflater().inflate(R.layout.content_button, changeLayout, false);
-//        params = (LinearLayout.MarginLayoutParams) changeLayout.getLayoutParams();
-//        ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(
-//                ViewGroup.MarginLayoutParams.MATCH_PARENT, ViewGroup.MarginLayoutParams.WRAP_CONTENT);
-//        params.height = 1920;
-//        params.topMargin = 0;
-//        child.setLayoutParams(params);
-//        changeLayout.addView(child);
+    private void addNewContact(String nameFile) {
+        try {
+            fos = openFileOutput("AllContacts.txt", Context.MODE_APPEND);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        chatHistory.writeChatHistory(nameFile);
+    }
 
-        buttons = new ArrayList<>();
-        buttonName = new ArrayList<>();
-        buttonName.add("Оля ");
-        buttonName.add("Макс ");
-        buttonName.add("Ника ");
+    int countLoadGroup;
+    public void loadAllContacts() {
+        if (countLoadGroup == 0) {
+            buttonName.add("Семья");
+            buttonName.add("Работа");
+            buttonName.add("GeekBrains");
+            countLoadGroup++;
+        }
+        try {
+            fis = openFileInput("AllContacts.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            String tmp;
+            while ((tmp = br.readLine()) != null) {
+                buttonName.add(tmp);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void createBtn() {
+        buttons.clear();
         for (int i = 0; i < buttonName.size(); i++) {
             buttons.add(new Button(this));
             buttons.get(i).setText(String.valueOf(i));
@@ -216,8 +272,8 @@ public class MainActivity extends AppCompatActivity {
         viewButton();
     }
 
-    private void viewButton() {
-        params = new LinearLayout.MarginLayoutParams(
+    public void viewButton() {
+        LinearLayout.MarginLayoutParams params = new LinearLayout.MarginLayoutParams(
                 LinearLayout.MarginLayoutParams.MATCH_PARENT,
                 LinearLayout.MarginLayoutParams.WRAP_CONTENT);
 
@@ -231,26 +287,23 @@ public class MainActivity extends AppCompatActivity {
             buttons.get(i).setLayoutParams(params);
             buttons.get(i).setY(btnMargin);
             btnMargin = btnMargin + 200;
-            changeLayout.addView(buttons.get(i), params);
+            chatLayoutInto.addView(buttons.get(i), params);
 
             Button button = findViewById(id_);
+            int finalI = i;
             button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
+                    try {
+                        fis = new FileInputStream(buttonName.get(finalI) + fileHistory);
+                        chatHistory.loadChatHistory();
+                        messageService.loginToMessage();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     Toast.makeText(view.getContext(),
                             "Button clicked index = " + id_, Toast.LENGTH_SHORT).show();
                 }
             });
-        }
-    }
-
-    private void initialize() {
-        try {
-            fos = openFileOutput(fileHistory, Context.MODE_APPEND);
-            fis = openFileInput(fileHistory);
-            serverAddressProp = getAssets().open("application.properties");
-            messageService = new MessageService(this, true);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

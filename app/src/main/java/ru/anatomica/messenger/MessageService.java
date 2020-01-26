@@ -80,6 +80,8 @@ public class MessageService extends IntentService {
             mainActivity.nickName = nickname;
             mainActivity.runOnUiThread(this::loginToChat);
             chatHistory.loadChatHistory();
+            mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+            mainActivity.runOnUiThread(mainActivity::createBtn);
             Activity activity;
             checkChange();
         } else {
