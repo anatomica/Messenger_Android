@@ -2,6 +2,7 @@ package ru.anatomica.messenger;
 
 import android.app.Activity;
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.view.View;
 import android.widget.*;
@@ -28,6 +29,7 @@ public class MessageService extends IntentService {
     private ChatHistory chatHistory;
     private Network network;
     private String nickname;
+    private String whoWriteMe;
 
     MessageService(MainActivity mainActivity, boolean needStopServerOnClosed) {
         super(MESSAGING_SERVICE_NAME);
@@ -70,16 +72,27 @@ public class MessageService extends IntentService {
 
     public void sendMessage(String message) {
         network.send(message);
-        if (!textMessage.getText().toString().equals(""))
-            chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
+        try {
+        if (!textMessage.getText().toString().equals("")) {
+            if (mainActivity.selectedNickname == null || mainActivity.selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+                mainActivity.fos = mainActivity.openFileOutput(mainActivity.fileHistory, Context.MODE_APPEND);
+                chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
+            }
+            if (!mainActivity.selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+                mainActivity.fos = mainActivity.openFileOutput(mainActivity.selectedNickname + mainActivity.fileHistory, Context.MODE_APPEND);
+                chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
+            }
+        } } catch (FileNotFoundException e) {
+                e.printStackTrace();
+        }
     }
 
     public void processRetrievedMessage(String message) throws IOException {
+        whoWriteMe = message.split("\\s+")[0];
         if (message.startsWith("/authok")) {
             nickname = message.split("\\s+")[1];
             mainActivity.nickName = nickname;
             mainActivity.runOnUiThread(this::loginToChat);
-            chatHistory.loadChatHistory();
             mainActivity.runOnUiThread(mainActivity::loadAllContacts);
             mainActivity.runOnUiThread(mainActivity::createBtn);
             Activity activity;
@@ -110,15 +123,23 @@ public class MessageService extends IntentService {
                             if (!message.equals("Новые сообщения:")) {
                                 if (!message.equals("Учетная запись уже используется!")) {
                                     if (!message.endsWith("выберите другой Логин!")) {
-                                        if (!message.endsWith("Пожалуйста, войдите в\nприложение заного!"))
+                                        if (!message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+                                            mainActivity.fos = mainActivity.openFileOutput(whoWriteMe + mainActivity.fileHistory, Context.MODE_APPEND);
                                             chatHistory.writeChatHistory(message);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
+
+                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedNickname.equals(whoWriteMe))
                 mainActivity.textArea.append(message + System.lineSeparator());
+//                else {
+//                    mainActivity.fos = mainActivity.openFileOutput(whoWriteMe + mainActivity.fileHistory, Context.MODE_APPEND);
+//                    chatHistory.writeChatHistory(message);
+//                }
             }
         }
     }

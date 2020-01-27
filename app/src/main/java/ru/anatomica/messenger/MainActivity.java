@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     protected Intent intent;
     protected String selectedNickname;
 
+
     private MessageService messageService;
     private ChatHistory chatHistory;
 
@@ -189,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         if (id == R.id.btn_settings) return true;
         if (id == R.id.btn_clear_nick) clearSavedNick();
+        if (id == R.id.btn_clear_all) clearAllChat();
         if (id == R.id.btn_clear) clearChat();
         if (id == R.id.btn_logout) logout();
         if (id == R.id.btn_exit) shutdown();
@@ -226,37 +228,43 @@ public class MainActivity extends AppCompatActivity {
         try {
             fos = openFileOutput(nameFile + fileHistory, Context.MODE_APPEND);
             fis = openFileInput(nameFile + fileHistory);
-            if (fis.available() > 0 && !nameFile.equals("")) {
-                chatHistory.loadChatHistory();
+            if (fis.available() >= 0 && !nameFile.equals("")) {
+                chatHistory.loadChatHistory(nameFile + fileHistory);
                 messageService.loginToMessage();
             }
             if (!nameFile.equals("")) {
-                addNewContact(nameFile);
-                loadAllContacts();
-                createBtn();
+                if (addNewContact(nameFile)) {
+                    loadAllContacts();
+                    createBtn();
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void addNewContact(String nameFile) {
+    private boolean addNewContact(String nameFile) {
         try {
             fos = openFileOutput("AllContacts.txt", Context.MODE_APPEND);
-        } catch (FileNotFoundException e) {
+            fis = openFileInput("AllContacts.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            String tmp;
+            while ((tmp = br.readLine()) != null) {
+                if (tmp.equals(nameFile)) return false;
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
         chatHistory.writeChatHistory(nameFile);
+        return true;
     }
 
-    int countLoadGroup;
     public void loadAllContacts() {
-        if (countLoadGroup == 0) {
-            buttonName.add("Семья");
-            buttonName.add("Работа");
-            buttonName.add("GeekBrains");
-            countLoadGroup++;
-        }
+        buttonName.clear();
+        buttonName.add("Семья");
+        buttonName.add("Работа");
+        buttonName.add("GeekBrains");
+
         try {
             fis = openFileInput("AllContacts.txt");
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
@@ -289,20 +297,19 @@ public class MainActivity extends AppCompatActivity {
             final int id_ = buttons.get(i).getId();
             buttons.get(i).setText(buttonName.get(i));
             buttons.get(i).getBackground().setAlpha(100);
-            params.height = 200;
+            params.height = 270;
             buttons.get(i).setLayoutParams(params);
             buttons.get(i).setY(btnMargin);
-            btnMargin = btnMargin + 200;
+            btnMargin = btnMargin + 270;
             chatLayoutInto.addView(buttons.get(i), params);
 
-            Button button = findViewById(id_);
             int finalI = i;
-            button.setOnClickListener(new View.OnClickListener() {
+            buttons.get(i).setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
                     try {
                         selectedNickname = buttons.get(finalI).getText().toString();
                         fis = openFileInput(buttons.get(finalI).getText().toString() + fileHistory);
-                        chatHistory.loadChatHistory();
+                        chatHistory.loadChatHistory(buttons.get(finalI).getText().toString() + fileHistory);
                         messageService.loginToMessage();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -443,6 +450,23 @@ public class MainActivity extends AppCompatActivity {
         textArea.setText(str);
         try {
             fosClear = openFileOutput(fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void clearAllChat() {
+        String str = "";
+        textArea.setText(str);
+        try {
+            fosClear = openFileOutput("Макс" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Оля" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Ника" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Олег" + fileHistory, Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
         } catch (IOException e) {
             e.printStackTrace();

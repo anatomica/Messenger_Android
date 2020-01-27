@@ -35,21 +35,31 @@ class ChatHistory {
         }
     }
 
-    void loadChatHistory() throws IOException {
+    void loadChatHistory(String fileToLoad) throws IOException {
+        mainActivity.textArea.setText("");
         mainActivity.textArea.append("Последние " + howManyMsgLoad + " сообщений:\n");
-//        BufferedReader br = new BufferedReader(new InputStreamReader(
-//                new FileInputStream(String.valueOf(mainActivity.fis)), "UTF-8"));
 
         try {
-            int available = mainActivity.fis.available();
-            byte[] buffer = new byte[available];
-            mainActivity.fis.read(buffer);
-            String text = new String(buffer);
-            mainActivity.textArea.append(text);
-            mainActivity.fis.close();
+            mainActivity.fis = mainActivity.openFileInput(fileToLoad);
+            BufferedReader br = new BufferedReader(new InputStreamReader(mainActivity.fis, "UTF-8"));
+            String text;
+            while ((text = br.readLine()) != null) {
+                mainActivity.textArea.append(text + "\n");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+//        try {
+//            int available = mainActivity.fis.available();
+//            byte[] buffer = new byte[available];
+//            mainActivity.fis.read(buffer);
+//            String text = new String(buffer);
+//            mainActivity.textArea.append(text);
+//            mainActivity.fis.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 //        List<String> listHistory = new ArrayList<>();
 //

@@ -14,4 +14,5 @@
     <string name="fcm_message">FCM Message</string>
     <string name="log_token">Log Token</string>
     <string name="clear_saved_nick">Clear Saved Nick</string>
+    <string name="clear_all_chats">Clear All Chats</string>
 </resources>
