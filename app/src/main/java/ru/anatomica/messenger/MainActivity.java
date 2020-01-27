@@ -4,6 +4,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -31,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     public ConstraintLayout changeLayout;
     public ConstraintLayout registerLayout;
     public ConstraintLayout loginLayout;
-    public ScrollView chatLayout;
+    public ConstraintLayout chatLayout;
     public ConstraintLayout chatLayoutInto;
     public ConstraintLayout messageLayout;
 
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     protected String password = "Password.txt";
     protected String refreshToken;
     protected Intent intent;
-    protected String selectNick;
+    protected String selectedNickname;
 
     private MessageService messageService;
     private ChatHistory chatHistory;
@@ -129,8 +130,8 @@ public class MainActivity extends AppCompatActivity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 Object item = parent.getItemAtPosition(pos);
-                selectNick = spinner.getSelectedItem().toString();
-                if (!selectNick.equals("< ДЛЯ ВСЕХ >")) openFile(selectNick);
+                selectedNickname = spinner.getSelectedItem().toString();
+                if (!selectedNickname.equals("< ДЛЯ ВСЕХ >")) openFile(selectedNickname);
             }
             public void onNothingSelected(AdapterView<?> parent) {
             }
@@ -160,6 +161,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         // super.onBackPressed();
+        if (messageLayout.getVisibility() == View.VISIBLE) {
+            messageService.loginToChat();
+            return;
+        }
         if (registerLayout.getVisibility() == View.VISIBLE) {
             messageService.changeToChoose();
             return;
@@ -183,6 +188,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.btn_settings) return true;
+        if (id == R.id.btn_clear_nick) clearSavedNick();
         if (id == R.id.btn_clear) clearChat();
         if (id == R.id.btn_logout) logout();
         if (id == R.id.btn_exit) shutdown();
@@ -282,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
             buttons.get(i).setId(i + 1);
             final int id_ = buttons.get(i).getId();
             buttons.get(i).setText(buttonName.get(i));
-            // buttons.get(i).setBackgroundColor(Color.alpha(1));
+            buttons.get(i).getBackground().setAlpha(100);
             params.height = 200;
             buttons.get(i).setLayoutParams(params);
             buttons.get(i).setY(btnMargin);
@@ -294,14 +300,16 @@ public class MainActivity extends AppCompatActivity {
             button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
                     try {
-                        fis = new FileInputStream(buttonName.get(finalI) + fileHistory);
+                        selectedNickname = buttons.get(finalI).getText().toString();
+                        fis = openFileInput(buttons.get(finalI).getText().toString() + fileHistory);
                         chatHistory.loadChatHistory();
                         messageService.loginToMessage();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                     Toast.makeText(view.getContext(),
-                            "Button clicked index = " + id_, Toast.LENGTH_SHORT).show();
+                            "Button index = " + id_ + "\nName: " +
+                                    buttons.get(finalI).getText().toString(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -316,12 +324,20 @@ public class MainActivity extends AppCompatActivity {
         Message msg = buildMessage(message);
         messageService.sendMessage(msg.toJson());
         textMessage.setText("");
-        // selectedNickname = clientList.getSelectionModel().getSelectedItem();
         textArea.append("Я: " + prepareToView(message) + System.lineSeparator());
     }
 
     private Message buildMessage(String message) {
-        // selectedNickname = clientList.getSelectionModel().getSelectedItem();
+        if (selectedNickname == null || selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+            return buildPublicMessage(message);
+        }
+        if (!selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+            PrivateMessage msg = new PrivateMessage();
+            msg.from = nickName;
+            msg.to = selectedNickname;
+            msg.message = message;
+            return Message.createPrivate(msg);
+        }
         return buildPublicMessage(message);
     }
 
@@ -427,6 +443,17 @@ public class MainActivity extends AppCompatActivity {
         textArea.setText(str);
         try {
             fosClear = openFileOutput(fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void clearSavedNick() {
+        String str = "";
+        textArea.setText(str);
+        try {
+            fosClear = openFileOutput("AllContacts.txt", Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
         } catch (IOException e) {
             e.printStackTrace();

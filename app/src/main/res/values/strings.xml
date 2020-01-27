@@ -13,4 +13,5 @@
     <string name="msg_subscribe_failed">Failed to subscribe to weather topic</string>
     <string name="fcm_message">FCM Message</string>
     <string name="log_token">Log Token</string>
+    <string name="clear_saved_nick">Clear Saved Nick</string>
 </resources>
