@@ -23,6 +23,7 @@ public class MessageService extends IntentService {
     private int hostPort;
 
     public ClientListMessage clientListMessage;
+    public PublicMessage publicMessage;
     private boolean needStopServerOnClosed;
     private MainActivity mainActivity;
     public EditText textMessage;
@@ -87,6 +88,7 @@ public class MessageService extends IntentService {
         }
     }
 
+    int count;
     public void processRetrievedMessage(String message) throws IOException {
         whoWriteMe = message.split("\\s+")[0];
         if (message.startsWith("/authok")) {
@@ -98,48 +100,46 @@ public class MessageService extends IntentService {
             Activity activity;
             checkChange();
         } else {
-            if (message.startsWith("{") && message.endsWith("}")) {
+            if (message.startsWith("{") && message.endsWith("}") && count == 0) {
                 Message msg = Message.fromJson(message);
                 clientListMessage = msg.clientListMessage;
                 mainActivity.runOnUiThread(this::clientList);
+                count++;
             } else {
                 // String messageText = mainActivity.intent.getStringExtra(message);
-                if (message.equals("Неверные логин/пароль!")) {
-                    mainActivity.runOnUiThread(() -> serviceMessage(message));
+                if (message.startsWith("{") && message.endsWith("}")) {
+                    Message msg = Message.fromJson(message);
+                    publicMessage = msg.publicMessage;
                 }
-                if (message.equals("Учетная запись уже используется!")) {
-                    mainActivity.runOnUiThread(() -> serviceMessage(message));
-                }
-                if (message.endsWith("выберите другой Логин!")) {
+                if (message.equals("Неверные логин/пароль!") || message.equals("Учетная запись уже используется!") ||
+                        message.endsWith("выберите другой Логин!")) {
                     mainActivity.runOnUiThread(() -> serviceMessage(message));
                 }
                 if (message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
                     mainActivity.runOnUiThread(() -> serviceMessage(message));
                     logoutAfterReg();
                 }
-                if (!message.equals("")) {
-                    if (!message.endsWith("лайн!")) {
-                        if (!message.equals("Неверные логин/пароль!")) {
-                            if (!message.equals("Новые сообщения:")) {
-                                if (!message.equals("Учетная запись уже используется!")) {
-                                    if (!message.endsWith("выберите другой Логин!")) {
-                                        if (!message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
-                                            mainActivity.fos = mainActivity.openFileOutput(whoWriteMe + mainActivity.fileHistory, Context.MODE_APPEND);
-                                            chatHistory.writeChatHistory(message);
-                                        }
-                                    }
-                                }
-                            }
+                if (!message.equals("") && !message.endsWith("лайн!") && !message.equals("Неверные логин/пароль!") &&
+                        !message.equals("Новые сообщения:") && !message.equals("Учетная запись уже используется!") &&
+                        !message.endsWith("выберите другой Логин!") && !message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+                    mainActivity.fos = mainActivity.openFileOutput(whoWriteMe + mainActivity.fileHistory, Context.MODE_APPEND);
+                    chatHistory.writeChatHistory(message);
+                }
+                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedNickname.equals(whoWriteMe))
+                    mainActivity.textArea.append(message + System.lineSeparator());
+                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedButton.equals(publicMessage.nameGroup))
+                    mainActivity.textArea.append(publicMessage.from + ": " + publicMessage.message + System.lineSeparator());
+                else {
+                    if (!message.startsWith("{\"clientListMessage\":") && !message.equals("") && !message.endsWith("лайн!") &&
+                            !message.equals("Неверные логин/пароль!") && !message.equals("Новые сообщения:") &&
+                            !message.equals("Учетная запись уже используется!") && !message.endsWith("выберите другой Логин!") &&
+                            !message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+                        if (mainActivity.addNewContact(whoWriteMe)) {
+                            mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+                            mainActivity.runOnUiThread(mainActivity::createBtn);
                         }
                     }
                 }
-
-                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedNickname.equals(whoWriteMe))
-                mainActivity.textArea.append(message + System.lineSeparator());
-//                else {
-//                    mainActivity.fos = mainActivity.openFileOutput(whoWriteMe + mainActivity.fileHistory, Context.MODE_APPEND);
-//                    chatHistory.writeChatHistory(message);
-//                }
             }
         }
     }

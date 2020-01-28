@@ -4,7 +4,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
     protected String refreshToken;
     protected Intent intent;
     protected String selectedNickname;
-
+    protected String selectedButton;
 
     private MessageService messageService;
     private ChatHistory chatHistory;
@@ -132,7 +131,10 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 Object item = parent.getItemAtPosition(pos);
                 selectedNickname = spinner.getSelectedItem().toString();
-                if (!selectedNickname.equals("< ДЛЯ ВСЕХ >")) openFile(selectedNickname);
+                if (!selectedNickname.equals("Пользователи группы:")) {
+                    selectedButton = selectedNickname;
+                    openFile(selectedNickname);
+                }
             }
             public void onNothingSelected(AdapterView<?> parent) {
             }
@@ -210,7 +212,6 @@ public class MainActivity extends AppCompatActivity {
         }
         if (id == R.id.btn_auth) sendAuth();
         if (id == R.id.btn_send) sendMessage();
-        if (id == R.id.btn_create) createBtn();
     }
 
     private void initialize() {
@@ -229,10 +230,17 @@ public class MainActivity extends AppCompatActivity {
             fos = openFileOutput(nameFile + fileHistory, Context.MODE_APPEND);
             fis = openFileInput(nameFile + fileHistory);
             if (fis.available() >= 0 && !nameFile.equals("")) {
-                chatHistory.loadChatHistory(nameFile + fileHistory);
-                messageService.loginToMessage();
+                if (nameFile.equals("Семья") || nameFile.equals("Работа") || nameFile.equals("GeekBrains")) {
+                    chatHistory.sendDataToServerGroupe(nameFile);
+                    chatHistory.loadChatHistory(nameFile + fileHistory);
+                    messageService.loginToMessage();
+                } else {
+                    chatHistory.loadChatHistory(nameFile + fileHistory);
+                    messageService.loginToMessage();
+                }
             }
-            if (!nameFile.equals("")) {
+            if (!nameFile.equals("") && !nameFile.equals("Семья") &&
+                    !nameFile.equals("Работа") && !nameFile.equals("GeekBrains")) {
                 if (addNewContact(nameFile)) {
                     loadAllContacts();
                     createBtn();
@@ -243,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private boolean addNewContact(String nameFile) {
+    public boolean addNewContact(String nameFile) {
         try {
             fos = openFileOutput("AllContacts.txt", Context.MODE_APPEND);
             fis = openFileInput("AllContacts.txt");
@@ -306,17 +314,12 @@ public class MainActivity extends AppCompatActivity {
             int finalI = i;
             buttons.get(i).setOnClickListener(new View.OnClickListener() {
                 public void onClick(View view) {
-                    try {
-                        selectedNickname = buttons.get(finalI).getText().toString();
-                        fis = openFileInput(buttons.get(finalI).getText().toString() + fileHistory);
-                        chatHistory.loadChatHistory(buttons.get(finalI).getText().toString() + fileHistory);
-                        messageService.loginToMessage();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    Toast.makeText(view.getContext(),
-                            "Button index = " + id_ + "\nName: " +
-                                    buttons.get(finalI).getText().toString(), Toast.LENGTH_SHORT).show();
+                    // selectedNickname = buttons.get(finalI).getText().toString();
+                    selectedButton = buttons.get(finalI).getText().toString();
+                    selectedNickname = buttons.get(finalI).getText().toString();
+                    openFile(selectedButton);
+//                    Toast.makeText(view.getContext(),"Button index = " + id_ + "\nName: " +
+//                            buttons.get(finalI).getText().toString(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -335,10 +338,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Message buildMessage(String message) {
-        if (selectedNickname == null || selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+        if (selectedButton.equals("Семья") || selectedButton.equals("Работа") || selectedButton.equals("GeekBrains")) {
             return buildPublicMessage(message);
         }
-        if (!selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+        if (!selectedNickname.equals("Пользователи группы:")) {
             PrivateMessage msg = new PrivateMessage();
             msg.from = nickName;
             msg.to = selectedNickname;
@@ -349,13 +352,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Message buildPublicMessage(String message) {
-        PublicMessage publicMsg = new PublicMessage();
-        publicMsg.from = nickName;
-        publicMsg.message = message;
-        Message msg = new Message();
-        msg.command = Command.PUBLIC_MESSAGE;
-        msg.publicMessage = publicMsg;
-        return msg;
+        PublicMessage msg =  new PublicMessage();
+        msg.from = nickName;
+        msg.message = message;
+        msg.nameGroup = selectedButton;
+        return Message.createPublic(msg);
+
+//        PublicMessage publicMsg = new PublicMessage();
+//        publicMsg.from = nickName;
+//        publicMsg.message = message;
+//        Message msg = new Message();
+//        msg.command = Command.PUBLIC_MESSAGE;
+//        msg.publicMessage = publicMsg;
+//        return msg;
     }
 
     private String prepareToView(String message) {
@@ -460,6 +469,8 @@ public class MainActivity extends AppCompatActivity {
         String str = "";
         textArea.setText(str);
         try {
+            fosClear = openFileOutput(fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
             fosClear = openFileOutput("Макс" + fileHistory, Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
             fosClear = openFileOutput("Оля" + fileHistory, Context.MODE_PRIVATE);
@@ -467,6 +478,16 @@ public class MainActivity extends AppCompatActivity {
             fosClear = openFileOutput("Ника" + fileHistory, Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
             fosClear = openFileOutput("Олег" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Макс:" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Оля:" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Ника:" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Семья" + fileHistory, Context.MODE_PRIVATE);
+            fosClear.write(str.getBytes());
+            fosClear = openFileOutput("Работа" + fileHistory, Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
         } catch (IOException e) {
             e.printStackTrace();

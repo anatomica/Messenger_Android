@@ -50,17 +50,6 @@ class ChatHistory {
             e.printStackTrace();
         }
 
-//        try {
-//            int available = mainActivity.fis.available();
-//            byte[] buffer = new byte[available];
-//            mainActivity.fis.read(buffer);
-//            String text = new String(buffer);
-//            mainActivity.textArea.append(text);
-//            mainActivity.fis.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-
 //        List<String> listHistory = new ArrayList<>();
 //
 //        String tmp;
@@ -84,5 +73,9 @@ class ChatHistory {
 //            chatHistory.append(s);
 //        }
 //        MessageService.textArea.append(chatHistory + "\n");
+    }
+
+    public void sendDataToServerGroupe(String nameGroupe) {
+
     }
 }
