@@ -263,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if (!nameFile.equals("Семья") && !nameFile.equals("Работа") && !nameFile.equals("GeekBrains"))
         chatHistory.writeChatHistory(nameFile);
         return true;
     }
@@ -339,7 +340,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Message buildMessage(String message) {
         if (selectedButton.equals("Семья") || selectedButton.equals("Работа") || selectedButton.equals("GeekBrains")) {
-            return buildPublicMessage(message);
+            return buildGroupMessage(message);
         }
         if (!selectedNickname.equals("Пользователи группы:")) {
             PrivateMessage msg = new PrivateMessage();
@@ -348,23 +349,15 @@ public class MainActivity extends AppCompatActivity {
             msg.message = message;
             return Message.createPrivate(msg);
         }
-        return buildPublicMessage(message);
+        return buildGroupMessage(message);
     }
 
-    private Message buildPublicMessage(String message) {
-        PublicMessage msg =  new PublicMessage();
+    private Message buildGroupMessage(String message) {
+        GroupMessage msg = new GroupMessage();
         msg.from = nickName;
         msg.message = message;
         msg.nameGroup = selectedButton;
-        return Message.createPublic(msg);
-
-//        PublicMessage publicMsg = new PublicMessage();
-//        publicMsg.from = nickName;
-//        publicMsg.message = message;
-//        Message msg = new Message();
-//        msg.command = Command.PUBLIC_MESSAGE;
-//        msg.publicMessage = publicMsg;
-//        return msg;
+        return Message.createGroup(msg);
     }
 
     private String prepareToView(String message) {

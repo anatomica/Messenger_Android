@@ -75,11 +75,11 @@ public class MessageService extends IntentService {
         network.send(message);
         try {
         if (!textMessage.getText().toString().equals("")) {
-            if (mainActivity.selectedNickname == null || mainActivity.selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+            if (mainActivity.selectedNickname == null || mainActivity.selectedNickname.equals("Пользователи группы:")) {
                 mainActivity.fos = mainActivity.openFileOutput(mainActivity.fileHistory, Context.MODE_APPEND);
                 chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
             }
-            if (!mainActivity.selectedNickname.equals("< ДЛЯ ВСЕХ >")) {
+            if (!mainActivity.selectedNickname.equals("Пользователи группы:")) {
                 mainActivity.fos = mainActivity.openFileOutput(mainActivity.selectedNickname + mainActivity.fileHistory, Context.MODE_APPEND);
                 chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
             }
@@ -90,57 +90,109 @@ public class MessageService extends IntentService {
 
     int count;
     public void processRetrievedMessage(String message) throws IOException {
-        whoWriteMe = message.split("\\s+")[0];
+        // whoWriteMe = message.split("\\s+")[0];
         if (message.startsWith("/authok")) {
             nickname = message.split("\\s+")[1];
             mainActivity.nickName = nickname;
             mainActivity.runOnUiThread(this::loginToChat);
             mainActivity.runOnUiThread(mainActivity::loadAllContacts);
             mainActivity.runOnUiThread(mainActivity::createBtn);
-            Activity activity;
             checkChange();
+            return;
+        }
+        if (message.equals("") || message.endsWith("лайн!") || message.equals("Неверные логин/пароль!") ||
+                message.startsWith("Новые сообщения") || message.equals("Учетная запись уже используется!") ||
+                message.endsWith("выберите другой Логин!") || message.equals("Сервер: Этот клиент не подключен!")) {
+            mainActivity.runOnUiThread(() -> serviceMessage(message));
+            return;
+        }
+        if (message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+            mainActivity.runOnUiThread(() -> serviceMessage(message));
+            logoutAfterReg();
         } else {
-            if (message.startsWith("{") && message.endsWith("}") && count == 0) {
-                Message msg = Message.fromJson(message);
-                clientListMessage = msg.clientListMessage;
-                mainActivity.runOnUiThread(this::clientList);
-                count++;
-            } else {
-                // String messageText = mainActivity.intent.getStringExtra(message);
-                if (message.startsWith("{") && message.endsWith("}")) {
-                    Message msg = Message.fromJson(message);
-                    publicMessage = msg.publicMessage;
-                }
-                if (message.equals("Неверные логин/пароль!") || message.equals("Учетная запись уже используется!") ||
-                        message.endsWith("выберите другой Логин!")) {
-                    mainActivity.runOnUiThread(() -> serviceMessage(message));
-                }
-                if (message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
-                    mainActivity.runOnUiThread(() -> serviceMessage(message));
-                    logoutAfterReg();
-                }
-                if (!message.equals("") && !message.endsWith("лайн!") && !message.equals("Неверные логин/пароль!") &&
-                        !message.equals("Новые сообщения:") && !message.equals("Учетная запись уже используется!") &&
-                        !message.endsWith("выберите другой Логин!") && !message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
-                    mainActivity.fos = mainActivity.openFileOutput(whoWriteMe + mainActivity.fileHistory, Context.MODE_APPEND);
-                    chatHistory.writeChatHistory(message);
-                }
-                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedNickname.equals(whoWriteMe))
-                    mainActivity.textArea.append(message + System.lineSeparator());
-                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedButton.equals(publicMessage.nameGroup))
-                    mainActivity.textArea.append(publicMessage.from + ": " + publicMessage.message + System.lineSeparator());
-                else {
-                    if (!message.startsWith("{\"clientListMessage\":") && !message.equals("") && !message.endsWith("лайн!") &&
-                            !message.equals("Неверные логин/пароль!") && !message.equals("Новые сообщения:") &&
-                            !message.equals("Учетная запись уже используется!") && !message.endsWith("выберите другой Логин!") &&
-                            !message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
-                        if (mainActivity.addNewContact(whoWriteMe)) {
-                            mainActivity.runOnUiThread(mainActivity::loadAllContacts);
-                            mainActivity.runOnUiThread(mainActivity::createBtn);
-                        }
+            Message m = Message.fromJson(message);
+            switch (m.command) {
+                case CLIENT_LIST:
+                    clientListMessage = m.clientListMessage;
+                    mainActivity.runOnUiThread(this::clientList);
+                    break;
+                case PUBLIC_MESSAGE:
+                    PublicMessage publicMessage = m.publicMessage;
+                    mainActivity.fos = mainActivity.openFileOutput(publicMessage.from + mainActivity.fileHistory, Context.MODE_APPEND);
+                    chatHistory.writeChatHistory(publicMessage.message);
+                    if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedButton.equals(publicMessage.from))
+                        mainActivity.textArea.append(publicMessage.from + " : " + publicMessage.message + System.lineSeparator());
+                    else if (mainActivity.addNewContact(publicMessage.from) && publicMessage.from != null) {
+                        mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+                        mainActivity.runOnUiThread(mainActivity::createBtn);
                     }
-                }
+                    break;
+                case GROUP_MESSAGE:
+                    GroupMessage groupMessage = m.groupMessage;
+                    mainActivity.fos = mainActivity.openFileOutput(groupMessage.nameGroup + mainActivity.fileHistory, Context.MODE_APPEND);
+                    chatHistory.writeChatHistory(groupMessage.from + " : " + groupMessage.message);
+                    if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedButton.equals(groupMessage.nameGroup))
+                        mainActivity.textArea.append(groupMessage.from + " : " + groupMessage.message + System.lineSeparator());
+                    else if (mainActivity.addNewContact(groupMessage.nameGroup) && groupMessage.from != null && groupMessage.nameGroup != null) {
+                        mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+                        mainActivity.runOnUiThread(mainActivity::createBtn);
+                    }
+                    break;
+                case PRIVATE_MESSAGE:
+                    PrivateMessage privateMessage = m.privateMessage;
+                    mainActivity.fos = mainActivity.openFileOutput(privateMessage.from + mainActivity.fileHistory, Context.MODE_APPEND);
+                    chatHistory.writeChatHistory(privateMessage.from + " : " + privateMessage.message);
+                    if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedNickname.equals(privateMessage.from))
+                        mainActivity.textArea.append(privateMessage.from + " : " + privateMessage.message + System.lineSeparator());
+                    else if (mainActivity.addNewContact(privateMessage.from)) {
+                        mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+                        mainActivity.runOnUiThread(mainActivity::createBtn);
+                    }
+                    break;
+                case END:
+                    return;
             }
+
+//            if (message.startsWith("{") && message.endsWith("}") && count == 0) {
+//                Message msg = Message.fromJson(message);
+//                clientListMessage = msg.clientListMessage;
+//                mainActivity.runOnUiThread(this::clientList);
+//                count++;
+//            } else {
+//                if (message.startsWith("{") && message.endsWith("}")) {
+//                    Message msg = Message.fromJson(message);
+//                    publicMessage = msg.publicMessage;
+//                }
+//                if (message.equals("Неверные логин/пароль!") || message.equals("Учетная запись уже используется!") ||
+//                        message.endsWith("выберите другой Логин!")) {
+//                    mainActivity.runOnUiThread(() -> serviceMessage(message));
+//                }
+//                if (message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+//                    mainActivity.runOnUiThread(() -> serviceMessage(message));
+//                    logoutAfterReg();
+//                }
+//                if (!message.equals("") && !message.endsWith("лайн!") && !message.equals("Неверные логин/пароль!") &&
+//                        !message.equals("Новые сообщения:") && !message.equals("Учетная запись уже используется!") &&
+//                        !message.endsWith("выберите другой Логин!") && !message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+//                    mainActivity.fos = mainActivity.openFileOutput(whoWriteMe + mainActivity.fileHistory, Context.MODE_APPEND);
+//                    chatHistory.writeChatHistory(message);
+//                }
+//                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedNickname.equals(whoWriteMe))
+//                    mainActivity.textArea.append(message + System.lineSeparator());
+//                if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedButton.equals(publicMessage.nameGroup))
+//                    mainActivity.textArea.append(publicMessage.from + ": " + publicMessage.message + System.lineSeparator());
+//                else {
+//                    if (!message.startsWith("{\"clientListMessage\":") && !message.equals("") && !message.endsWith("лайн!") &&
+//                            !message.equals("Неверные логин/пароль!") && !message.equals("Новые сообщения:") &&
+//                            !message.equals("Учетная запись уже используется!") && !message.endsWith("выберите другой Логин!") &&
+//                            !message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+//                        if (mainActivity.addNewContact(whoWriteMe)) {
+//                            mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+//                            mainActivity.runOnUiThread(mainActivity::createBtn);
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 
