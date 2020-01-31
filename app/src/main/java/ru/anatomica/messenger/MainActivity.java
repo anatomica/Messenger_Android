@@ -19,6 +19,7 @@ import android.widget.*;
 import com.google.firebase.iid.FirebaseInstanceId;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import ru.anatomica.messenger.gson.*;
 
@@ -231,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
             fis = openFileInput(nameFile + fileHistory);
             if (fis.available() >= 0 && !nameFile.equals("")) {
                 if (nameFile.equals("Семья") || nameFile.equals("Работа") || nameFile.equals("GeekBrains")) {
-                    chatHistory.sendDataToServerGroupe(nameFile);
+                    chatHistory.sendDataToServerGroup(nameFile);
                     chatHistory.loadChatHistory(nameFile + fileHistory);
                     messageService.loginToMessage();
                 } else {
@@ -252,6 +253,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean addNewContact(String nameFile) {
+        if (nameFile.equals("Семья") || nameFile.equals("Работа") ||
+                nameFile.equals("GeekBrains")) return false;
         try {
             fos = openFileOutput("AllContacts.txt", Context.MODE_APPEND);
             fis = openFileInput("AllContacts.txt");
@@ -263,7 +266,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if (!nameFile.equals("Семья") && !nameFile.equals("Работа") && !nameFile.equals("GeekBrains"))
         chatHistory.writeChatHistory(nameFile);
         return true;
     }
@@ -313,21 +315,30 @@ public class MainActivity extends AppCompatActivity {
             chatLayoutInto.addView(buttons.get(i), params);
 
             int finalI = i;
-            buttons.get(i).setOnClickListener(new View.OnClickListener() {
-                public void onClick(View view) {
-                    // selectedNickname = buttons.get(finalI).getText().toString();
-                    selectedButton = buttons.get(finalI).getText().toString();
-                    selectedNickname = buttons.get(finalI).getText().toString();
-                    openFile(selectedButton);
+            buttons.get(i).setOnClickListener(view -> {
+                selectedButton = buttons.get(finalI).getText().toString();
+                selectedNickname = buttons.get(finalI).getText().toString();
+                openFile(selectedButton);
+                requestClientsList(selectedButton);
 //                    Toast.makeText(view.getContext(),"Button index = " + id_ + "\nName: " +
 //                            buttons.get(finalI).getText().toString(), Toast.LENGTH_SHORT).show();
-                }
             });
         }
     }
 
     private void sendMessage () {
         sendMessageAction();
+    }
+
+    private void requestClientsList(String nameButton) {
+        if (nameButton.equals("Семья") || nameButton.equals("Работа") || nameButton.equals("GeekBrains")) {
+            List<String> nameGroup = new ArrayList<>();
+            nameGroup.add(nameButton);
+            Message msg = Message.createClientList(nameGroup, nickName);
+            messageService.sendMessage(msg.toJson());
+        } else {
+
+        }
     }
 
     private void sendMessageAction() {
