@@ -8,6 +8,7 @@ public class Message {
 
     public ClientListMessage clientListMessage;
     public RegisterMessage registerMessage;
+    public WorkWithGroup workWithGroup;
     public PrivateMessage privateMessage;
     public PublicMessage publicMessage;
     public GroupMessage groupMessage;
@@ -67,6 +68,12 @@ public class Message {
     public static Message createRegister(RegisterMessage msg) {
         Message m = create(Command.REGISTER_MESSAGE);
         m.registerMessage = msg;
+        return m;
+    }
+
+    public static Message workWithGroup (WorkWithGroup msg) {
+        Message m = create(Command.WORK_WITH_GROUP);
+        m.workWithGroup = msg;
         return m;
     }
 

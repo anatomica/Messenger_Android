@@ -8,10 +8,6 @@ public class PrivateMessage {
     public String message;
 
     public String toJson() {
-//        Gson gson = new GsonBuilder()
-//                .setPrettyPrinting()
-//                .create();
-//        return gson.toJson(this);
         return new Gson().toJson(this);
     }
 
@@ -19,12 +15,4 @@ public class PrivateMessage {
         return new Gson().fromJson(json, PrivateMessage.class);
     }
 
-    public static void main(String[] args) {
-        PrivateMessage m = new PrivateMessage();
-        m.from = "Nick1";
-        m.to = "Nick2";
-        m.message = "Hello, World!";
-
-        System.out.println(m.toJson());
-    }
 }

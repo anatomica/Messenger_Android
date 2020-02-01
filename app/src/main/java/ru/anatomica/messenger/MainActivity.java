@@ -1,5 +1,6 @@
 package ru.anatomica.messenger;
 
+import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -71,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MessageService messageService;
     private ChatHistory chatHistory;
+    private ChatWork chatWork;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -192,6 +194,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.btn_settings) return true;
+        if (id == R.id.btn_create_group) chatWork.createGroup();
+        if (id == R.id.btn_delete_group) chatWork.deleteGroup();
         if (id == R.id.btn_clear_nick) clearSavedNick();
         if (id == R.id.btn_clear_all) clearAllChat();
         if (id == R.id.btn_clear) clearChat();
@@ -220,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
             serverAddressProp = getAssets().open("application.properties");
             messageService = new MessageService(this, true);
             chatHistory = new ChatHistory(this);
+            chatWork = new ChatWork(this, messageService);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -232,7 +237,6 @@ public class MainActivity extends AppCompatActivity {
             fis = openFileInput(nameFile + fileHistory);
             if (fis.available() >= 0 && !nameFile.equals("")) {
                 if (nameFile.equals("Семья") || nameFile.equals("Работа") || nameFile.equals("GeekBrains")) {
-                    chatHistory.sendDataToServerGroup(nameFile);
                     chatHistory.loadChatHistory(nameFile + fileHistory);
                     messageService.loginToMessage();
                 } else {
@@ -320,10 +324,41 @@ public class MainActivity extends AppCompatActivity {
                 selectedNickname = buttons.get(finalI).getText().toString();
                 openFile(selectedButton);
                 requestClientsList(selectedButton);
+                openDialogPass();
 //                    Toast.makeText(view.getContext(),"Button index = " + id_ + "\nName: " +
 //                            buttons.get(finalI).getText().toString(), Toast.LENGTH_SHORT).show();
             });
         }
+    }
+
+    private void openDialogPass() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        alertDialog.setTitle("Группа ...");
+        alertDialog.setMessage("Введите пароль:");
+
+        final EditText input = new EditText(MainActivity.this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+        // alertDialog.setIcon(R.drawable.key);
+
+        alertDialog.setPositiveButton("Отправить!", (dialog, which) -> {
+                    password = input.getText().toString();
+                    if (password.compareTo("") == 0) {
+                        if ("".equals(password)) {
+                            Toast.makeText(getApplicationContext(),"Password Matched", Toast.LENGTH_SHORT).show();
+//                            Intent myIntent = new Intent(chatLayout.getContext(), MainActivity.class);
+//                            startActivityForResult(myIntent, 0);
+                        } else {
+                            Toast.makeText(getApplicationContext(),"Wrong Password!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+
+        alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
+        alertDialog.show();
     }
 
     private void sendMessage () {

@@ -2,9 +2,6 @@ package ru.anatomica.messenger;
 
 import android.content.Context;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 class ChatHistory {
 
@@ -99,7 +96,4 @@ class ChatHistory {
         }
     }
 
-    public void sendDataToServerGroup (String nameGroupe) {
-
-    }
 }

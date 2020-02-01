@@ -8,23 +8,31 @@
         android:title="@string/settings"
         app:showAsAction="never" />
     <item
-        android:id="@+id/btn_clear_nick"
+        android:id="@+id/btn_create_group"
         android:orderInCategory="101"
+        android:title="@string/create_group_chat" />
+    <item
+        android:id="@+id/btn_delete_group"
+        android:orderInCategory="102"
+        android:title="@string/delete_group_chat" />
+    <item
+        android:id="@+id/btn_clear_nick"
+        android:orderInCategory="103"
         android:title="@string/clear_saved_nick" />
     <item
         android:id="@+id/btn_clear_all"
-        android:orderInCategory="102"
+        android:orderInCategory="104"
         android:title="@string/clear_all_chats" />
     <item
         android:id="@+id/btn_clear"
-        android:orderInCategory="103"
+        android:orderInCategory="105"
         android:title="@string/clear" />
     <item
         android:id="@+id/btn_logout"
-        android:orderInCategory="104"
+        android:orderInCategory="106"
         android:title="@string/logout" />
     <item
         android:id="@+id/btn_exit"
-        android:orderInCategory="105"
+        android:orderInCategory="107"
         android:title="@string/exit" />
 </menu>

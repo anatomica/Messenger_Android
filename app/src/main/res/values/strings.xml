@@ -15,4 +15,6 @@
     <string name="log_token">Log Token</string>
     <string name="clear_saved_nick">Clear Saved Nick</string>
     <string name="clear_all_chats">Clear All Chats</string>
+    <string name="create_group_chat">Create Group Chat</string>
+    <string name="delete_group_chat">Delete Group Chat</string>
 </resources>

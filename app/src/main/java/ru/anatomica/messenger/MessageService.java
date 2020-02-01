@@ -23,19 +23,19 @@ public class MessageService extends IntentService {
     private int hostPort;
 
     public ClientListMessage clientListMessage;
-    public PublicMessage publicMessage;
     private boolean needStopServerOnClosed;
     private MainActivity mainActivity;
     public EditText textMessage;
+    private ChatWork chatWork;
     private ChatHistory chatHistory;
     private Network network;
     private String nickname;
-    private String whoWriteMe;
 
     MessageService(MainActivity mainActivity, boolean needStopServerOnClosed) {
         super(MESSAGING_SERVICE_NAME);
         this.textMessage = mainActivity.textMessage;
         this.mainActivity = mainActivity;
+        this.chatWork = new ChatWork(mainActivity, this);
         this.chatHistory = new ChatHistory(mainActivity);
         this.needStopServerOnClosed = needStopServerOnClosed;
         initialize();
@@ -89,7 +89,7 @@ public class MessageService extends IntentService {
     }
 
     public void processRetrievedMessage(String message) throws IOException {
-        if (message.startsWith("/authok")) {
+        if (message.startsWith("/authOk")) {
             nickname = message.split("\\s+")[1];
             mainActivity.nickName = nickname;
             mainActivity.runOnUiThread(this::loginToChat);
@@ -114,6 +114,11 @@ public class MessageService extends IntentService {
                 case CLIENT_LIST:
                     clientListMessage = m.clientListMessage;
                     mainActivity.runOnUiThread(this::clientList);
+                    break;
+                case WORK_WITH_GROUP:
+                    WorkWithGroup workWithGroup = m.workWithGroup;
+                    if (workWithGroup.identify.equals("1")) chatWork.createGroupChat(workWithGroup);
+                    if (workWithGroup.identify.equals("0")) chatWork.deleteGroupChat(workWithGroup);
                     break;
                 case PUBLIC_MESSAGE:
                     PublicMessage publicMessage = m.publicMessage;
