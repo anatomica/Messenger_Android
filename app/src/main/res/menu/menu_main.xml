@@ -16,9 +16,9 @@
         android:orderInCategory="102"
         android:title="@string/delete_group_chat" />
     <item
-        android:id="@+id/btn_clear_nick"
+        android:id="@+id/btn_clear_nicks"
         android:orderInCategory="103"
-        android:title="@string/clear_saved_nick" />
+        android:title="@string/clear_saved_nicks" />
     <item
         android:id="@+id/btn_clear_all"
         android:orderInCategory="104"

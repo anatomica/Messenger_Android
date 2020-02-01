@@ -3,9 +3,13 @@
     <string name="settings">Settings</string>
     <string name="send">Send</string>
     <string name="auth">Login</string>
+    <string name="create_group_chat">Create Group Chat</string>
+    <string name="delete_group_chat">Delete Group Chat</string>
+    <string name="clear_saved_nicks">Clear All Contacts</string>
+    <string name="clear_all_chats">Clear All Chats</string>
+    <string name="clear">Clear This Chat</string>
     <string name="logout">Logout</string>
     <string name="exit">Exit</string>
-    <string name="clear">Clear Chat</string>
     <string name="msg_subscribed">Subscribed to weather topic</string>
     <string name="msg_token_fmt" translatable="false">InstanceID Token: %s</string>
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
@@ -13,8 +17,4 @@
     <string name="msg_subscribe_failed">Failed to subscribe to weather topic</string>
     <string name="fcm_message">FCM Message</string>
     <string name="log_token">Log Token</string>
-    <string name="clear_saved_nick">Clear Saved Nick</string>
-    <string name="clear_all_chats">Clear All Chats</string>
-    <string name="create_group_chat">Create Group Chat</string>
-    <string name="delete_group_chat">Delete Group Chat</string>
 </resources>

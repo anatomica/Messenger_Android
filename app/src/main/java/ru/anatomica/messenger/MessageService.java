@@ -126,7 +126,7 @@ public class MessageService extends IntentService {
                         mainActivity.textArea.append(publicMessage.from + " : " + publicMessage.message + System.lineSeparator());
                         chatHistory.outputPath("", publicMessage.from, mainActivity.fileHistory, publicMessage.from, publicMessage.message);
                     }
-                    else if (mainActivity.addNewContact(publicMessage.from) && publicMessage.from != null) {
+                    else if (mainActivity.addNewContact("0 ", publicMessage.from) && publicMessage.from != null) {
                         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
                         mainActivity.runOnUiThread(mainActivity::createBtn);
                         chatHistory.outputPath("", publicMessage.from, mainActivity.fileHistory, publicMessage.from, publicMessage.message);
@@ -141,7 +141,7 @@ public class MessageService extends IntentService {
                         mainActivity.textArea.append(groupMessage.from + " : " + groupMessage.message + System.lineSeparator());
                         chatHistory.outputPath("", groupMessage.nameGroup, mainActivity.fileHistory, groupMessage.from, groupMessage.message);
                     }
-                    else if (mainActivity.addNewContact(groupMessage.nameGroup) && groupMessage.from != null && groupMessage.nameGroup != null) {
+                    else if (mainActivity.addNewContact("1 ", groupMessage.nameGroup) && groupMessage.from != null && groupMessage.nameGroup != null) {
                         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
                         mainActivity.runOnUiThread(mainActivity::createBtn);
                         chatHistory.outputPath("", groupMessage.nameGroup, mainActivity.fileHistory, groupMessage.from, groupMessage.message);
@@ -156,7 +156,7 @@ public class MessageService extends IntentService {
                         mainActivity.textArea.append(privateMessage.from + " : " + privateMessage.message + System.lineSeparator());
                         chatHistory.outputPath("", privateMessage.from, mainActivity.fileHistory, privateMessage.from, privateMessage.message);
                     }
-                    else if (mainActivity.addNewContact(privateMessage.from)) {
+                    else if (mainActivity.addNewContact("0 ", privateMessage.from)) {
                         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
                         mainActivity.runOnUiThread(mainActivity::createBtn);
                         chatHistory.outputPath("", privateMessage.from, mainActivity.fileHistory, privateMessage.from, privateMessage.message);
