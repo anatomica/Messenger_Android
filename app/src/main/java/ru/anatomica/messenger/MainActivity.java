@@ -232,18 +232,13 @@ public class MainActivity extends AppCompatActivity {
         // openFile("", "");
     }
 
-    private void openFile(String identifyButOnCreate, String nameFile) {
+    public void openFile(String identifyButOnCreate, String nameFile) {
         try {
             fos = openFileOutput(nameFile + fileHistory, Context.MODE_APPEND);
             fis = openFileInput(nameFile + fileHistory);
             if (fis.available() >= 0 && !nameFile.equals("")) {
-                if (identifyButton.equals("1")) {
-                    chatHistory.loadChatHistory(nameFile + fileHistory);
-                    messageService.loginToMessage();
-                } else {
-                    chatHistory.loadChatHistory(nameFile + fileHistory);
-                    messageService.loginToMessage();
-                }
+                chatHistory.loadChatHistory(nameFile + fileHistory);
+                messageService.loginToMessage();
             }
             if (addNewContact(identifyButOnCreate, nameFile)) {
                 loadAllContacts();
@@ -373,14 +368,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestClientsList(String nameButton) {
-        if (nameButton.equals("Семья") || nameButton.equals("Работа") || nameButton.equals("GeekBrains")) {
-            List<String> nameGroup = new ArrayList<>();
-            nameGroup.add(nameButton);
-            Message msg = Message.createClientList(nameGroup, nickName);
-            messageService.sendMessage(msg.toJson());
-        } else {
-
-        }
+        List<String> nameGroup = new ArrayList<>();
+        nameGroup.add(nameButton);
+        Message msg = Message.createClientList(nameGroup, nickName);
+        messageService.sendMessage(msg.toJson());
     }
 
     private void sendMessageAction() {
@@ -517,24 +508,15 @@ public class MainActivity extends AppCompatActivity {
         try {
             fosClear = openFileOutput(fileHistory, Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Макс" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Оля" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Ника" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Олег" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Макс:" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Оля:" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Ника:" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Семья" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
-            fosClear = openFileOutput("Работа" + fileHistory, Context.MODE_PRIVATE);
-            fosClear.write(str.getBytes());
+            fos = openFileOutput("AllContacts.txt", Context.MODE_APPEND);
+            fis = openFileInput("AllContacts.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            String tmp;
+            while ((tmp = br.readLine()) != null) {
+                String name = tmp.split("\\s+", 2)[1];
+                fos = openFileOutput(name + fileHistory, Context.MODE_PRIVATE);
+                fos.write(str.getBytes());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -100,7 +100,12 @@ public class MessageService extends IntentService {
         }
         if (message.equals("") || message.endsWith("лайн!") || message.equals("Неверные логин/пароль!") ||
                 message.startsWith("Новые сообщения") || message.equals("Учетная запись уже используется!") ||
-                message.endsWith("выберите другой Логин!") || message.equals("Сервер: Этот клиент не подключен!")) {
+                message.endsWith("выберите другой Логин!") || message.equals("Сервер: Этот клиент не подключен!") ||
+                message.equals("Группа с данным именем существует!") || message.equals("Группа успешно создана!")){
+            mainActivity.runOnUiThread(() -> serviceMessage(message));
+            return;
+        }
+        if (message.equals(" ")) {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
             return;
         }
@@ -117,8 +122,8 @@ public class MessageService extends IntentService {
                     break;
                 case WORK_WITH_GROUP:
                     WorkWithGroup workWithGroup = m.workWithGroup;
-                    if (workWithGroup.identify.equals("1")) chatWork.createGroupChat(workWithGroup);
-                    if (workWithGroup.identify.equals("0")) chatWork.deleteGroupChat(workWithGroup);
+                    if (workWithGroup.identify.equals("1")) chatWork.createChatButton(workWithGroup);
+                    if (workWithGroup.identify.equals("0")) chatWork.deleteChatButton(workWithGroup);
                     break;
                 case PUBLIC_MESSAGE:
                     PublicMessage publicMessage = m.publicMessage;

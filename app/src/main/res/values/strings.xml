@@ -5,7 +5,7 @@
     <string name="auth">Login</string>
     <string name="create_group_chat">Create Group Chat</string>
     <string name="delete_group_chat">Delete Group Chat</string>
-    <string name="clear_saved_nicks">Clear All Contacts</string>
+    <string name="clear_saved_nicks">Delete All Contacts</string>
     <string name="clear_all_chats">Clear All Chats</string>
     <string name="clear">Clear This Chat</string>
     <string name="logout">Logout</string>
