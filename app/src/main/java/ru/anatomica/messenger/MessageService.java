@@ -1,6 +1,5 @@
 package ru.anatomica.messenger;
 
-import android.app.Activity;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +23,7 @@ public class MessageService extends IntentService {
 
     public ClientListMessage clientListMessage;
     private boolean needStopServerOnClosed;
+    private WorkWithGroup workWithGroup;
     private MainActivity mainActivity;
     public EditText textMessage;
     private ChatWork chatWork;
@@ -101,7 +101,8 @@ public class MessageService extends IntentService {
         if (message.equals("") || message.endsWith("лайн!") || message.equals("Неверные логин/пароль!") ||
                 message.startsWith("Новые сообщения") || message.equals("Учетная запись уже используется!") ||
                 message.endsWith("выберите другой Логин!") || message.equals("Сервер: Этот клиент не подключен!") ||
-                message.equals("Группа с данным именем существует!") || message.equals("Группа успешно создана!")){
+                message.equals("Группа с данным именем существует!") || message.equals("Группа успешно создана!") ||
+                message.equals("Вы отписаны от рассылки из данной группы!") || message.equals("Неверный пароль!")) {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
             return;
         }
@@ -121,9 +122,11 @@ public class MessageService extends IntentService {
                     mainActivity.runOnUiThread(this::clientList);
                     break;
                 case WORK_WITH_GROUP:
-                    WorkWithGroup workWithGroup = m.workWithGroup;
+                    workWithGroup = m.workWithGroup;
+                    if (workWithGroup.identify.equals("0")) chatWork.deleteChatButton(workWithGroup.nameGroup);
                     if (workWithGroup.identify.equals("1")) chatWork.createChatButton(workWithGroup);
-                    if (workWithGroup.identify.equals("0")) chatWork.deleteChatButton(workWithGroup);
+                    if (workWithGroup.identify.equals("2")) mainActivity.runOnUiThread(this::openFile);
+                    if (workWithGroup.identify.equals("3")) chatWork.deletePass(workWithGroup);
                     break;
                 case PUBLIC_MESSAGE:
                     PublicMessage publicMessage = m.publicMessage;
@@ -178,6 +181,10 @@ public class MessageService extends IntentService {
 
     void clientList(){
         mainActivity.clientList();
+    }
+
+    void openFile() {
+        mainActivity.openFile("1 ", workWithGroup.nameGroup);
     }
 
     public void changeToChoose() {

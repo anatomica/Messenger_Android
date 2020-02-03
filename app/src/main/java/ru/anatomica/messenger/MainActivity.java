@@ -1,6 +1,8 @@
 package ru.anatomica.messenger;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -15,7 +17,9 @@ import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewManager;
 import android.widget.*;
 import com.google.firebase.iid.FirebaseInstanceId;
 import java.io.*;
@@ -36,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     public ConstraintLayout chatLayout;
     public ConstraintLayout chatLayoutInto;
     public ConstraintLayout messageLayout;
+    public TextView contact;
 
     public Button exit;
     public Button sendAuth;
@@ -62,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     protected ArrayList<String> buttonName = new ArrayList<>();
     public InputStream serverAddressProp;
 
+    private final int MENU_LIST = 1;
     public String fileHistory = "History.txt";
     protected String login = "Login.txt";
     protected String password = "Password.txt";
@@ -71,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
     protected String selectedButton;
     protected String identifyButton;
 
+    protected AlertDialog.Builder alertDialog;
     private MessageService messageService;
     private ChatHistory chatHistory;
     private ChatWork chatWork;
@@ -92,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
         chatLayoutInto = findViewById(R.id.activity_chat_layout);
         messageLayout = findViewById(R.id.activity_message);
         buttonLayout = findViewById(R.id.ButtonContainer);
+        contact = findViewById(R.id.contact);
 
         textMessage = findViewById(R.id.textSend);
         textArea = findViewById(R.id.textView);
@@ -138,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!selectedNickname.equals("Пользователи группы:")) {
                     selectedButton = selectedNickname;
                     openFile("0 ", selectedNickname);
+                    setNameOnChat();
                 }
             }
             public void onNothingSelected(AdapterView<?> parent) {
@@ -206,18 +215,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onClick(View view) {
-        if (view == null) return;
-        int id = view.getId();
-
-        if (id == R.id.btn_register) messageService.changeToReg();
-        if (id == R.id.btn_login) messageService.changeToLogin();
-
-        if (id == R.id.btn_reg) {
-            register();
-            register();
+        switch (view.getId()) {
+            case R.id.btn_register:
+                messageService.changeToReg();
+                break;
+            case R.id.btn_login:
+                messageService.changeToLogin();
+                break;
+            case R.id.btn_reg:
+                register();
+                register();
+                break;
+            case R.id.btn_auth:
+                sendAuth();
+                break;
+            case R.id.btn_send:
+                sendMessage();
+                break;
         }
-        if (id == R.id.btn_auth) sendAuth();
-        if (id == R.id.btn_send) sendMessage();
     }
 
     private void initialize() {
@@ -229,7 +244,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // openFile("", "");
     }
 
     public void openFile(String identifyButOnCreate, String nameFile) {
@@ -275,6 +289,8 @@ public class MainActivity extends AppCompatActivity {
                 chatHistory.writeChatHistory("1 " + "Семья");
                 chatHistory.writeChatHistory("1 " + "Работа");
                 chatHistory.writeChatHistory("1 " + "GeekBrains");
+                chatHistory.writeChatHistory("1 " + "Общий Чат");
+                chatWork.savePass("Общий Чат", "0");
             }
             BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             String tmp;
@@ -287,14 +303,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void createBtn() {
-        buttons.clear();
+        removeButton();
         for (int i = 0; i < buttonName.size(); i++) {
             buttons.add(new Button(this));
-            // buttons.get(i).setText(String.valueOf(i));
         }
         viewButton();
     }
 
+    public void removeButton() {
+        if (buttons.size() > 0)
+            for (int i = 0; i < buttons.size(); i++) {
+                ((ViewManager)buttons.get(i).getParent()).removeView(buttons.get(i));
+            }
+        buttons.clear();
+    }
+
+    long startTime;
+    @SuppressLint("ClickableViewAccessibility")
     public void viewButton() {
         LinearLayout.MarginLayoutParams params = new LinearLayout.MarginLayoutParams(
                 LinearLayout.MarginLayoutParams.MATCH_PARENT,
@@ -314,27 +339,72 @@ public class MainActivity extends AppCompatActivity {
             chatLayoutInto.addView(buttons.get(i), params);
 
             int finalI = i;
-            buttons.get(i).setOnClickListener(view -> {
+            buttons.get(i).setOnTouchListener((v, event) -> {
                 String textButton = buttonName.get(finalI);
                 identifyButton = textButton.split("\\s+")[0];
                 selectedButton = textButton.split("\\s+", 2)[1];
                 selectedNickname = textButton.split("\\s+", 2)[1];
-                openFile(identifyButton + " ", selectedButton);
-                if (identifyButton.equals("1")) requestClientsList(selectedButton);
-                if (identifyButton.equals("0")) setNameOnChat();
-                openDialogPass();
-//                    Toast.makeText(view.getContext(),"Button index = " + id_ + "\nName: " +
-//                            buttons.get(finalI).getText().toString(), Toast.LENGTH_SHORT).show();
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        startTime = System.currentTimeMillis();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        long totalTime = System.currentTimeMillis() - startTime;
+                        long totalSeconds = totalTime / 1000;
+                        if (totalSeconds < 1) {
+                            if (identifyButton.equals("1")) {
+                                if (!chatWork.autoLoginToGroup(selectedButton)) {
+                                    openDialogPass();
+                                    contact.setVisibility(View.INVISIBLE);
+                                    spinner.setVisibility(View.VISIBLE);
+                                    requestClientsList(selectedButton);
+                                }
+                            }
+                            if (identifyButton.equals("0")) {
+                                openFile(identifyButton + " ", selectedButton);
+                                setNameOnChat();
+                            }
+                        }
+                        if (totalSeconds >= 1) {
+                            showDialog(MENU_LIST);
+                        }
+                        break;
+                    case MotionEvent.ACTION_CANCEL:
+                        break;
+                }
+                return true;
             });
         }
     }
 
     private void setNameOnChat() {
+        contact.setText(selectedButton);
+        spinner.setVisibility(View.INVISIBLE);
+        contact.setVisibility(View.VISIBLE);
+    }
 
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        switch (id) {
+            case MENU_LIST:
+                final String[] choose = {"Удалить Чат!", "Отмена ..."};
+                alertDialog = new AlertDialog.Builder(this);
+                alertDialog.setTitle("Удалить выбранный Чат?"); // заголовок для диалога
+                alertDialog.setItems(choose, (dialog, item) -> {
+                    if (item == 0) chatWork.deleteGroupChat(selectedButton);
+                    if (item == 1) Toast.makeText(getApplicationContext(),"Выбрано: " + choose[item], Toast.LENGTH_SHORT).show();
+                });
+                alertDialog.setCancelable(false);
+                return alertDialog.create();
+            default:
+                return null;
+        }
     }
 
     private void openDialogPass() {
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+        alertDialog = new AlertDialog.Builder(MainActivity.this);
         alertDialog.setTitle("Группа ...");
         alertDialog.setMessage("Введите пароль:");
 
@@ -345,20 +415,15 @@ public class MainActivity extends AppCompatActivity {
         input.setLayoutParams(lp);
         alertDialog.setView(input);
         // alertDialog.setIcon(R.drawable.key);
-
         alertDialog.setPositiveButton("Отправить!", (dialog, which) -> {
-                    password = input.getText().toString();
-                    if (password.compareTo("") == 0) {
-                        if ("".equals(password)) {
-                            Toast.makeText(getApplicationContext(),"Password Matched", Toast.LENGTH_SHORT).show();
-//                            Intent myIntent = new Intent(chatLayout.getContext(), MainActivity.class);
-//                            startActivityForResult(myIntent, 0);
-                        } else {
-                            Toast.makeText(getApplicationContext(),"Wrong Password!", Toast.LENGTH_SHORT).show();
-                        }
+                    String passGroup = input.getText().toString();
+                    if (passGroup.compareTo("") > 0) {
+                        chatWork.checkPassGroup(selectedButton, passGroup);
+                        chatWork.savePass(selectedButton, passGroup);
                     }
-                });
-
+        });
+//      Intent myIntent = new Intent(chatLayout.getContext(), MainActivity.class);
+//      startActivityForResult(myIntent, 0);
         alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
         alertDialog.show();
     }
@@ -367,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
         sendMessageAction();
     }
 
-    private void requestClientsList(String nameButton) {
+    public void requestClientsList(String nameButton) {
         List<String> nameGroup = new ArrayList<>();
         nameGroup.add(nameButton);
         Message msg = Message.createClientList(nameGroup, nickName);

@@ -2,20 +2,19 @@ package ru.anatomica.messenger;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
 import ru.anatomica.messenger.gson.Message;
 import ru.anatomica.messenger.gson.WorkWithGroup;
 
-public class ChatWork {
+class ChatWork {
 
     private String nameGroup;
     private MainActivity mainActivity;
@@ -75,7 +74,20 @@ public class ChatWork {
         messageService.sendMessage(msg.toJson());
     }
 
-    private void deleteGroupChat(String nameGroup) {
+    void deleteGroupChat(String nameGroup) {
+        Message msg = buildWorkWithGroup(nameGroup, "0");
+        messageService.sendMessage(msg.toJson());
+        deleteChatButton(nameGroup);
+    }
+
+    void createChatButton(WorkWithGroup workWithGroup) {
+        if (mainActivity.addNewContact("1 ", workWithGroup.nameGroup)) {
+            mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+            mainActivity.runOnUiThread(mainActivity::createBtn);
+        }
+    }
+
+    void deleteChatButton(String nameGroup) {
         try {
             mainActivity.fos = mainActivity.openFileOutput("AllContacts.txt", Context.MODE_APPEND);
             mainActivity.fis = mainActivity.openFileInput("AllContacts.txt");
@@ -101,25 +113,69 @@ public class ChatWork {
         Toast.makeText(mainActivity, "Успешно удалено!", Toast.LENGTH_LONG).show();
         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
         mainActivity.runOnUiThread(mainActivity::createBtn);
-//        Message msg = buildWorkWithGroup(nameGroup, "0");
-//        messageService.sendMessage(msg.toJson());
     }
 
-    void createChatButton(WorkWithGroup workWithGroup) {
-        if (mainActivity.addNewContact("1 ", workWithGroup.nameGroup)) {
-            mainActivity.runOnUiThread(mainActivity::loadAllContacts);
-            mainActivity.runOnUiThread(mainActivity::createBtn);
+    void checkPassGroup(String group, String pass) {
+        Message msg = buildCheckPass(group, pass, "2");
+        messageService.sendMessage(msg.toJson());
+    }
+
+    void savePass(String selectedButton, String passGroup) {
+        try {
+            mainActivity.fos = mainActivity.openFileOutput("Pass" + selectedButton + ".txt", Context.MODE_PRIVATE);
+            mainActivity.fos.write(passGroup.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    void deleteChatButton(WorkWithGroup workWithGroup) {
+    void deletePass(WorkWithGroup workWithGroup) {
+        String str = "";
+        try {
+            mainActivity.fos = mainActivity.openFileOutput("Pass" + workWithGroup.nameGroup + ".txt", Context.MODE_PRIVATE);
+            mainActivity.fos.write(str.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    private Message buildCheckPass(String nameGroup, String password, String identify) {
+        WorkWithGroup msg = new WorkWithGroup();
+        msg.nameGroup = nameGroup;
+        msg.password = password;
+        msg.identify = identify;
+        return Message.workWithGroup(msg);
     }
 
     private Message buildWorkWithGroup(String nameGroup, String identify) {
         WorkWithGroup msg = new WorkWithGroup();
-        msg.identify = identify;
         msg.nameGroup = nameGroup;
+        msg.identify = identify;
         return Message.workWithGroup(msg);
     }
+
+    boolean autoLoginToGroup(String group) {
+        try {
+            mainActivity.fis = mainActivity.openFileInput("Pass" + group + ".txt");
+            if (mainActivity.fis.available() > 0) {
+                int available = mainActivity.fis.available();
+                byte[] bufPass = new byte[available];
+                mainActivity.fis.read(bufPass);
+                String pass = new String(bufPass);
+                mainActivity.fis.close();
+                Message msg = buildCheckPass(group, pass, "2");
+                messageService.sendMessage(msg.toJson());
+                mainActivity.requestClientsList(group);
+                mainActivity.contact.setVisibility(View.INVISIBLE);
+                mainActivity.spinner.setVisibility(View.VISIBLE);
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }
