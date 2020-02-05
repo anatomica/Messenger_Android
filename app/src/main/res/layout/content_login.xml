@@ -13,8 +13,8 @@
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="745dp"
-        android:layout_height="695dp"
+        android:layout_width="600dp"
+        android:layout_height="740dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -61,6 +61,7 @@
         android:layout_height="24dp"
         android:layout_marginTop="44dp"
         android:text="Login"
+        android:textColor="@android:color/background_light"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.298"
         app:layout_constraintStart_toStartOf="parent"
@@ -72,6 +73,7 @@
         android:layout_height="24dp"
         android:layout_marginTop="132dp"
         android:text="Password"
+        android:textColor="@android:color/background_light"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.298"
         app:layout_constraintStart_toStartOf="parent"

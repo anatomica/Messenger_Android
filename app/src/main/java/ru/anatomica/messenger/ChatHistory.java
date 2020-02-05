@@ -1,6 +1,10 @@
 package ru.anatomica.messenger;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.text.Spannable;
+import android.text.style.ForegroundColorSpan;
+
 import java.io.*;
 
 class ChatHistory {
@@ -84,7 +88,12 @@ class ChatHistory {
             int count = 0;
             while ((text = br.readLine()) != null) {
                 if (count == 0) {
-                    mainActivity.textArea.append("Новые сообщения: \n");
+                    String oldText = mainActivity.textArea.getText().toString();
+                    String newMessage = "Новые сообщения:\n";
+                    mainActivity.textArea.setText("");
+                    mainActivity.textArea.append(oldText + newMessage);
+                    Spannable spannableText = mainActivity.textArea.getText();
+                    spannableText.setSpan(new ForegroundColorSpan(Color.BLUE), oldText.length(), oldText.length() + newMessage.length(), 0);
                     count++;
                 }
                 mainActivity.textArea.append(text + "\n");

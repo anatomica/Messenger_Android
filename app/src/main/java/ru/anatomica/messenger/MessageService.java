@@ -102,7 +102,8 @@ public class MessageService extends IntentService {
                 message.startsWith("Новые сообщения") || message.equals("Учетная запись уже используется!") ||
                 message.endsWith("выберите другой Логин!") || message.equals("Сервер: Этот клиент не подключен!") ||
                 message.equals("Группа с данным именем существует!") || message.equals("Группа успешно создана!") ||
-                message.equals("Вы отписаны от рассылки из данной группы!") || message.equals("Неверный пароль!")) {
+                message.equals("Вы отписаны от рассылки из данной группы!") || message.equals("Неверный пароль!") ||
+                message.equals("Пароль задан!")) {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
             return;
         }
@@ -123,10 +124,23 @@ public class MessageService extends IntentService {
                     break;
                 case WORK_WITH_GROUP:
                     workWithGroup = m.workWithGroup;
-                    if (workWithGroup.identify.equals("0")) chatWork.deleteChatButton(workWithGroup.nameGroup);
-                    if (workWithGroup.identify.equals("1")) chatWork.createChatButton(workWithGroup);
-                    if (workWithGroup.identify.equals("2")) mainActivity.runOnUiThread(this::openFile);
-                    if (workWithGroup.identify.equals("3")) chatWork.deletePass(workWithGroup);
+                    switch (workWithGroup.identify) {
+                        case "0":
+                            chatWork.deleteChatButton(workWithGroup.nameGroup);
+                            break;
+                        case "1":
+                            chatWork.createChatButton(workWithGroup);
+                            break;
+                        case "2":
+                            mainActivity.runOnUiThread(this::openFile);
+                            break;
+                        case "3":
+                            chatWork.deletePass(workWithGroup);
+                            break;
+                        case "4":
+                            mainActivity.runOnUiThread(this::addNewContact);
+                            break;
+                    }
                     break;
                 case PUBLIC_MESSAGE:
                     PublicMessage publicMessage = m.publicMessage;
@@ -174,9 +188,13 @@ public class MessageService extends IntentService {
                     }
                     break;
                 case END:
-                    return;
+                    break;
             }
         }
+    }
+
+    private void addNewContact() {
+        mainActivity.addNewContact("1 ", workWithGroup.nameGroup);
     }
 
     void clientList(){

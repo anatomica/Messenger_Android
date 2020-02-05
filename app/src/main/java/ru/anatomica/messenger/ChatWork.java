@@ -19,14 +19,37 @@ class ChatWork {
     private String nameGroup;
     private MainActivity mainActivity;
     private MessageService messageService;
+    private AlertDialog.Builder alertDialog;
 
     ChatWork(MainActivity mainActivity, MessageService messageService) {
         this.mainActivity = mainActivity;
         this.messageService = messageService;
     }
 
-    void createGroup() {
+    void joinToGroup() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mainActivity);
+        alertDialog.setTitle("Присоединение к группе ...");
+        alertDialog.setMessage("Введите имя группы:");
+
+        final EditText input = new EditText(mainActivity);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+
+        alertDialog.setPositiveButton("Присоединиться!", (dialog, which) -> {
+            nameGroup = input.getText().toString();
+            if (nameGroup.compareTo("") > 0 && !nameGroup.equals("") && nameGroup != null) {
+                createGroupChat(nameGroup, "","4");
+            } else mainActivity.runOnUiThread(() -> messageService.serviceMessage("Введите, пожалуйста, название группы!"));
+        });
+        alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
+
+    void createGroup() {
+        alertDialog = new AlertDialog.Builder(mainActivity);
         alertDialog.setTitle("Создание группы ...");
         alertDialog.setMessage("Введите имя группы:");
 
@@ -37,19 +60,41 @@ class ChatWork {
         input.setLayoutParams(lp);
         alertDialog.setView(input);
 
-        alertDialog.setPositiveButton("Отправить!", (dialog, which) -> {
+        alertDialog.setPositiveButton("Ввести пароль!", (dialog, which) -> {
             nameGroup = input.getText().toString();
-            if (nameGroup.compareTo("") > 0) {
-                createGroupChat(nameGroup);
-            }
+            if (nameGroup.compareTo("") > 0 && !nameGroup.equals("") && !nameGroup.startsWith(" ") && nameGroup != null) {
+                createPass();
+            } else mainActivity.runOnUiThread(() -> messageService.serviceMessage("Пожалуйста, введите название группы!"));
         });
-        alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
+        alertDialog.setNegativeButton("Отмена!", (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
+
+    private void createPass() {
+        alertDialog = new AlertDialog.Builder(mainActivity);
+        alertDialog.setTitle("Создание группы ...");
+        alertDialog.setMessage("Введите пароль:");
+
+        final EditText input = new EditText(mainActivity);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+
+        alertDialog.setPositiveButton("Создать!", (dialog, which) -> {
+            String password = input.getText().toString();
+            if (password.compareTo("") > 0 && !password.equals("") && !password.startsWith(" ") && password != null) {
+                createGroupChat(nameGroup, password, "1");
+            } else mainActivity.runOnUiThread(() -> messageService.serviceMessage("Пожалуйста, введите пароль!"));
+        });
+        alertDialog.setNegativeButton("Отмена!", (dialog, which) -> dialog.cancel());
         alertDialog.show();
     }
 
     void deleteGroup() {
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mainActivity);
-        alertDialog.setTitle("Удаление чата ...");
+        alertDialog.setTitle("Удаление чата " + mainActivity.selectedButton);
         alertDialog.setMessage("Введите название чата:");
 
         final EditText input = new EditText(mainActivity);
@@ -65,17 +110,17 @@ class ChatWork {
                 deleteGroupChat(nameGroup);
             }
         });
-        alertDialog.setNegativeButton("Нет!", (dialog, which) -> dialog.cancel());
+        alertDialog.setNegativeButton("Отмена!", (dialog, which) -> dialog.cancel());
         alertDialog.show();
     }
 
-    private void createGroupChat(String nameGroup) {
-        Message msg = buildWorkWithGroup(nameGroup, "1");
+    private void createGroupChat(String nameGroup, String password, String identify) {
+        Message msg = buildWorkWithGroup(nameGroup, password, identify);
         messageService.sendMessage(msg.toJson());
     }
 
     void deleteGroupChat(String nameGroup) {
-        Message msg = buildWorkWithGroup(nameGroup, "0");
+        Message msg = buildWorkWithGroup(nameGroup,"","0");
         messageService.sendMessage(msg.toJson());
         deleteChatButton(nameGroup);
     }
@@ -116,7 +161,7 @@ class ChatWork {
     }
 
     void checkPassGroup(String group, String pass) {
-        Message msg = buildCheckPass(group, pass, "2");
+        Message msg = buildWorkWithGroup(group, pass, "2");
         messageService.sendMessage(msg.toJson());
     }
 
@@ -139,17 +184,10 @@ class ChatWork {
         }
     }
 
-    private Message buildCheckPass(String nameGroup, String password, String identify) {
+    private Message buildWorkWithGroup(String nameGroup, String password, String identify) {
         WorkWithGroup msg = new WorkWithGroup();
         msg.nameGroup = nameGroup;
         msg.password = password;
-        msg.identify = identify;
-        return Message.workWithGroup(msg);
-    }
-
-    private Message buildWorkWithGroup(String nameGroup, String identify) {
-        WorkWithGroup msg = new WorkWithGroup();
-        msg.nameGroup = nameGroup;
         msg.identify = identify;
         return Message.workWithGroup(msg);
     }
@@ -163,7 +201,7 @@ class ChatWork {
                 mainActivity.fis.read(bufPass);
                 String pass = new String(bufPass);
                 mainActivity.fis.close();
-                Message msg = buildCheckPass(group, pass, "2");
+                Message msg = buildWorkWithGroup(group, pass, "2");
                 messageService.sendMessage(msg.toJson());
                 mainActivity.requestClientsList(group);
                 mainActivity.contact.setVisibility(View.INVISIBLE);

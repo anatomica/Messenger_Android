@@ -7,6 +7,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    public LinearLayout buttonLayout;
     public CoordinatorLayout mainLayout;
     public ConstraintLayout changeLayout;
     public ConstraintLayout registerLayout;
@@ -98,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
         chatLayout = findViewById(R.id.activity_chat);
         chatLayoutInto = findViewById(R.id.activity_chat_layout);
         messageLayout = findViewById(R.id.activity_message);
-        buttonLayout = findViewById(R.id.ButtonContainer);
         contact = findViewById(R.id.contact);
 
         textMessage = findViewById(R.id.textSend);
@@ -114,6 +113,9 @@ public class MainActivity extends AppCompatActivity {
         exit = findViewById(R.id.btn_exit);
         sendAuth = findViewById(R.id.btn_auth);
         sendMessageButton = findViewById(R.id.btn_send);
+        sendMessageButton.setTextColor(Color.WHITE);
+        sendMessageButton.setBackgroundColor(Color.DKGRAY);
+        sendMessageButton.getBackground().setAlpha(200);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelId = getString(R.string.default_notification_channel_id);
@@ -201,16 +203,76 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem createGroup = menu.findItem(R.id.btn_create_group);
+        MenuItem joinGroup = menu.findItem(R.id.btn_join_group);
+        MenuItem leaveGroup = menu.findItem(R.id.btn_delete_group);
+        MenuItem deleteNicks = menu.findItem(R.id.btn_clear_nicks);
+        MenuItem clearALLChats = menu.findItem(R.id.btn_clear_all);
+        MenuItem clearChat = menu.findItem(R.id.btn_clear);
+        MenuItem logout = menu.findItem(R.id.btn_logout);
+
+        if (changeLayout.getVisibility() == View.VISIBLE || registerLayout.getVisibility() == View.VISIBLE ||
+                loginLayout.getVisibility() == View.VISIBLE) {
+            createGroup.setVisible(false);
+            joinGroup.setVisible(false);
+            leaveGroup.setVisible(false);
+            deleteNicks.setVisible(false);
+            clearALLChats.setVisible(false);
+            clearChat.setVisible(false);
+            logout.setVisible(false);
+        }
+        if (chatLayout.getVisibility() == View.VISIBLE) {
+            createGroup.setVisible(true);
+            joinGroup.setVisible(true);
+            leaveGroup.setVisible(true);
+            deleteNicks.setVisible(true);
+            clearALLChats.setVisible(false);
+            clearChat.setVisible(false);
+            logout.setVisible(true);
+        }
+        if (messageLayout.getVisibility() == View.VISIBLE) {
+            createGroup.setVisible(false);
+            joinGroup.setVisible(false);
+            leaveGroup.setVisible(false);
+            deleteNicks.setVisible(false);
+            clearALLChats.setVisible(true);
+            clearChat.setVisible(true);
+            logout.setVisible(true);
+        }
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.btn_settings) return true;
-        if (id == R.id.btn_create_group) chatWork.createGroup();
-        if (id == R.id.btn_delete_group) chatWork.deleteGroup();
-        if (id == R.id.btn_clear_nicks) clearSavedNick();
-        if (id == R.id.btn_clear_all) clearAllChat();
-        if (id == R.id.btn_clear) clearChat();
-        if (id == R.id.btn_logout) logout();
-        if (id == R.id.btn_exit) shutdown();
+        switch (item.getItemId()) {
+            case R.id.btn_settings:
+                return true;
+            case R.id.btn_create_group:
+                chatWork.createGroup();
+                break;
+            case R.id.btn_join_group:
+                chatWork.joinToGroup();
+                break;
+            case R.id.btn_delete_group:
+                chatWork.deleteGroup();
+                break;
+            case R.id.btn_clear_nicks:
+                clearSavedNick();
+                break;
+            case R.id.btn_clear_all:
+                clearAllChat();
+                break;
+            case R.id.btn_clear:
+                clearChat();
+                break;
+            case R.id.btn_logout:
+                logout();
+                break;
+            case R.id.btn_exit:
+                shutdown();
+                break;
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -332,6 +394,7 @@ public class MainActivity extends AppCompatActivity {
             String name = buttonName.get(i);
             buttons.get(i).setText(name.split("\\s+", 2)[1]);
             buttons.get(i).getBackground().setAlpha(100);
+            buttons.get(i).setTextColor(Color.WHITE);
             params.height = 270;
             buttons.get(i).setLayoutParams(params);
             buttons.get(i).setY(btnMargin);
@@ -389,7 +452,7 @@ public class MainActivity extends AppCompatActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
             case MENU_LIST:
-                final String[] choose = {"Удалить Чат!", "Отмена ..."};
+                final String[] choose = {"Удалить Чат " + selectedButton + "?", "Отмена ..."};
                 alertDialog = new AlertDialog.Builder(this);
                 alertDialog.setTitle("Удалить выбранный Чат?"); // заголовок для диалога
                 alertDialog.setItems(choose, (dialog, item) -> {
@@ -405,7 +468,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void openDialogPass() {
         alertDialog = new AlertDialog.Builder(MainActivity.this);
-        alertDialog.setTitle("Группа ...");
+        alertDialog.setTitle("Группа " + selectedButton);
         alertDialog.setMessage("Введите пароль:");
 
         final EditText input = new EditText(MainActivity.this);
@@ -415,7 +478,7 @@ public class MainActivity extends AppCompatActivity {
         input.setLayoutParams(lp);
         alertDialog.setView(input);
         // alertDialog.setIcon(R.drawable.key);
-        alertDialog.setPositiveButton("Отправить!", (dialog, which) -> {
+        alertDialog.setPositiveButton("Верно!", (dialog, which) -> {
                     String passGroup = input.getText().toString();
                     if (passGroup.compareTo("") > 0) {
                         chatWork.checkPassGroup(selectedButton, passGroup);
@@ -560,7 +623,7 @@ public class MainActivity extends AppCompatActivity {
         String str = "";
         textArea.setText(str);
         try {
-            fosClear = openFileOutput(fileHistory, Context.MODE_PRIVATE);
+            fosClear = openFileOutput(selectedButton + fileHistory, Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
         } catch (IOException e) {
             e.printStackTrace();

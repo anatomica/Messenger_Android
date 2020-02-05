@@ -5,10 +5,21 @@
     android:id="@+id/activity_message"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:visibility="invisible"
+    android:visibility="visible"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".MainActivity"
     tools:showIn="@layout/activity_main">
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="600dp"
+        android:layout_height="740dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:srcCompat="@drawable/bg_msg" />
 
     <Spinner
         android:id="@+id/spinner"
@@ -26,7 +37,7 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center|center_vertical"
-        android:textColor="@android:color/holo_blue_dark"
+        android:textColor="@android:color/background_dark"
         android:textSize="26sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
