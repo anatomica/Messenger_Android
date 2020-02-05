@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Messenger</string>
+    <string name="settings">Настройки</string>
+    <string name="send">Send</string>
+    <string name="auth">Логин</string>
+    <string name="create_group_chat">Создать групповой чат</string>
+    <string name="join_to_group_chat">Присоединиться к групповому чату</string>
+    <string name="leave_group_chat">Покинуть групповой чат</string>
+    <string name="clear_saved_nicks">Удалить все контакты</string>
+    <string name="clear_all_chats">Очистить ВСЕ чаты</string>
+    <string name="clear">Очистить этот чат</string>
+    <string name="logout">Логаут</string>
+    <string name="exit">Выход</string>
+    <string name="msg_subscribed">Subscribed to weather topic</string>
+    <string name="msg_token_fmt" translatable="false">InstanceID Token: %s</string>
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="default_notification_channel_name" translatable="true">Weather</string>
+    <string name="msg_subscribe_failed">Failed to subscribe to weather topic</string>
+    <string name="fcm_message">FCM Message</string>
+    <string name="log_token">Log Token</string>
+</resources>
