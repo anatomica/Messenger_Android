@@ -99,12 +99,17 @@ public class MessageService extends IntentService {
             return;
         }
         if (message.equals("") || message.endsWith("лайн!") || message.equals("Неверные логин/пароль!") ||
-                message.startsWith("Новые сообщения") || message.equals("Учетная запись уже используется!") ||
-                message.endsWith("выберите другой Логин!") || message.equals("Сервер: Этот клиент не подключен!") ||
-                message.equals("Группа с данным именем существует!") || message.equals("Группа успешно создана!") ||
-                message.equals("Вы отписаны от рассылки из данной группы!") || message.equals("Неверный пароль!") ||
-                message.equals("Пароль задан!")) {
+                message.equals("Учетная запись уже используется!") || message.endsWith("выберите другой Логин!") ||
+                message.equals("Сервер: Этот клиент не подключен!") || message.equals("Группа с данным именем существует!") ||
+                message.equals("Группа успешно создана!") || message.equals("Вы отписаны от рассылки из данной группы!") ||
+                message.equals("Неверный пароль!") || message.equals("Пароль задан!") ||
+                message.endsWith("зарегистрировался в Чате!")) {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
+            return;
+        }
+        if (message.startsWith("Новые сообщения")) {
+            String newMessage = chatWork.checkNewName(message.split("\\s+", 4)[3]);
+            mainActivity.runOnUiThread(() -> serviceMessage("Новые сообщения от "+ newMessage));
             return;
         }
         if (message.equals(" ")) {
@@ -144,47 +149,50 @@ public class MessageService extends IntentService {
                     break;
                 case PUBLIC_MESSAGE:
                     PublicMessage publicMessage = m.publicMessage;
+                    String newPublicVisualName = chatWork.checkNewName(publicMessage.from);
                     if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedButton.equals(publicMessage.from)) {
-                        mainActivity.textArea.append(publicMessage.from + " : " + publicMessage.message + System.lineSeparator());
-                        chatHistory.outputPath("", publicMessage.from, mainActivity.fileHistory, publicMessage.from, publicMessage.message);
+                        mainActivity.textArea.append(newPublicVisualName + " : " + publicMessage.message + System.lineSeparator());
+                        chatHistory.outputPath("", publicMessage.from, mainActivity.fileHistory, newPublicVisualName, publicMessage.message);
                     }
                     else if (mainActivity.addNewContact("0 ", publicMessage.from) && publicMessage.from != null) {
                         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
                         mainActivity.runOnUiThread(mainActivity::createBtn);
-                        chatHistory.outputPath("", publicMessage.from, mainActivity.fileHistory, publicMessage.from, publicMessage.message);
+                        chatHistory.outputPath("", publicMessage.from, mainActivity.fileHistory, newPublicVisualName, publicMessage.message);
                     }
                     else {
-                        chatHistory.outputPath("New", publicMessage.from, mainActivity.fileHistory, publicMessage.from, publicMessage.message);
+                        chatHistory.outputPath("New", publicMessage.from, mainActivity.fileHistory, newPublicVisualName, publicMessage.message);
                     }
                     break;
                 case GROUP_MESSAGE:
                     GroupMessage groupMessage = m.groupMessage;
+                    String newGroupVisualName = chatWork.checkNewName(groupMessage.from);
                     if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedButton.equals(groupMessage.nameGroup)) {
-                        mainActivity.textArea.append(groupMessage.from + " : " + groupMessage.message + System.lineSeparator());
-                        chatHistory.outputPath("", groupMessage.nameGroup, mainActivity.fileHistory, groupMessage.from, groupMessage.message);
+                        mainActivity.textArea.append(newGroupVisualName + " : " + groupMessage.message + System.lineSeparator());
+                        chatHistory.outputPath("", groupMessage.nameGroup, mainActivity.fileHistory, newGroupVisualName, groupMessage.message);
                     }
                     else if (mainActivity.addNewContact("1 ", groupMessage.nameGroup) && groupMessage.from != null && groupMessage.nameGroup != null) {
                         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
                         mainActivity.runOnUiThread(mainActivity::createBtn);
-                        chatHistory.outputPath("", groupMessage.nameGroup, mainActivity.fileHistory, groupMessage.from, groupMessage.message);
+                        chatHistory.outputPath("", groupMessage.nameGroup, mainActivity.fileHistory, newGroupVisualName, groupMessage.message);
                     }
                     else {
-                        chatHistory.outputPath("New", groupMessage.nameGroup, mainActivity.fileHistory, groupMessage.from, groupMessage.message);
+                        chatHistory.outputPath("New", groupMessage.nameGroup, mainActivity.fileHistory, newGroupVisualName, groupMessage.message);
                     }
                     break;
                 case PRIVATE_MESSAGE:
                     PrivateMessage privateMessage = m.privateMessage;
+                    String newVisualName = chatWork.checkNewName(privateMessage.from);
                     if (mainActivity.messageLayout.getVisibility() == View.VISIBLE && mainActivity.selectedNickname.equals(privateMessage.from)) {
-                        mainActivity.textArea.append(privateMessage.from + " : " + privateMessage.message + System.lineSeparator());
-                        chatHistory.outputPath("", privateMessage.from, mainActivity.fileHistory, privateMessage.from, privateMessage.message);
+                        mainActivity.textArea.append(newVisualName + " : " + privateMessage.message + System.lineSeparator());
+                        chatHistory.outputPath("", privateMessage.from, mainActivity.fileHistory, newVisualName, privateMessage.message);
                     }
                     else if (mainActivity.addNewContact("0 ", privateMessage.from)) {
                         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
                         mainActivity.runOnUiThread(mainActivity::createBtn);
-                        chatHistory.outputPath("", privateMessage.from, mainActivity.fileHistory, privateMessage.from, privateMessage.message);
+                        chatHistory.outputPath("", privateMessage.from, mainActivity.fileHistory, newVisualName, privateMessage.message);
                     }
                     else {
-                        chatHistory.outputPath("New", privateMessage.from, mainActivity.fileHistory, privateMessage.from, privateMessage.message);
+                        chatHistory.outputPath("New", privateMessage.from, mainActivity.fileHistory, newVisualName, privateMessage.message);
                     }
                     break;
                 case END:

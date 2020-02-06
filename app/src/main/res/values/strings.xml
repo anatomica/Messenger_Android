@@ -7,6 +7,7 @@
     <string name="join_to_group_chat">Join To Group Chat</string>
     <string name="leave_group_chat">Leave Group Chat</string>
     <string name="clear_saved_nicks">Delete All Contacts</string>
+    <string name="restore_all_contacts">Restore All Contacts</string>
     <string name="clear_all_chats">Clear All Chats</string>
     <string name="clear">Clear This Chat</string>
     <string name="logout">Logout</string>

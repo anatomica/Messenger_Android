@@ -216,4 +216,70 @@ class ChatWork {
         return false;
     }
 
+    public String checkNewName(String nickname) {
+        try {
+            mainActivity.fos = mainActivity.openFileOutput("NewName.txt", Context.MODE_APPEND);
+            mainActivity.fis = mainActivity.openFileInput("NewName.txt");
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(mainActivity.fis, "UTF-8"));
+            String contact;
+            while ((contact = br.readLine()) != null) {
+                String oldNickName = contact.split("\\s+", 2)[0];
+                String newNickName = contact.split("\\s+", 2)[1];
+                if (nickname.equals(oldNickName))
+                    return newNickName;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return nickname;
+    }
+
+    public void makeNewName(String selectedButton) {
+            alertDialog = new AlertDialog.Builder(mainActivity);
+            alertDialog.setTitle("Переименование контакта ...");
+            alertDialog.setMessage("Введите новое имя:");
+
+            final EditText input = new EditText(mainActivity);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT);
+            input.setLayoutParams(lp);
+            alertDialog.setView(input);
+
+            alertDialog.setPositiveButton("Переименовать!", (dialog, which) -> {
+                String newName = input.getText().toString();
+                if (newName.compareTo("") > 0 && !newName.equals("") && !newName.startsWith(" ") && newName != null) {
+                    writeNewName(selectedButton, newName);
+                } else mainActivity.runOnUiThread(() -> messageService.serviceMessage("Пожалуйста, введите пароль!"));
+            });
+            alertDialog.setNegativeButton("Отмена!", (dialog, which) -> dialog.cancel());
+            alertDialog.show();
+    }
+
+    private void writeNewName(String selectedButton, String newName) {
+        try {
+            mainActivity.fos = mainActivity.openFileOutput("NewName.txt", Context.MODE_APPEND);
+            mainActivity.fis = mainActivity.openFileInput("NewName.txt");
+            String tmp = selectedButton + " " + newName + "\n";
+            mainActivity.fos.write(tmp.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+        mainActivity.runOnUiThread(mainActivity::createBtn);
+    }
+
+    public void restoreContacts() {
+        String str = "";
+        try {
+            mainActivity.fos = mainActivity.openFileOutput("NewName.txt", Context.MODE_PRIVATE);
+            mainActivity.fis = mainActivity.openFileInput("NewName.txt");
+            mainActivity.fos.write(str.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mainActivity.runOnUiThread(mainActivity::loadAllContacts);
+        mainActivity.runOnUiThread(mainActivity::createBtn);
+    }
 }

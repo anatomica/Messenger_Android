@@ -8,6 +8,7 @@
     <string name="join_to_group_chat">Присоединиться к групповому чату</string>
     <string name="leave_group_chat">Покинуть групповой чат</string>
     <string name="clear_saved_nicks">Удалить все контакты</string>
+    <string name="restore_all_contacts">Восстановить контакты</string>
     <string name="clear_all_chats">Очистить ВСЕ чаты</string>
     <string name="clear">Очистить этот чат</string>
     <string name="logout">Логаут</string>

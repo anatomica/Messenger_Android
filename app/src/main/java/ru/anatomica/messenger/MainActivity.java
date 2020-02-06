@@ -72,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
     protected String login = "Login.txt";
     protected String password = "Password.txt";
     protected String refreshToken;
-    protected Intent intent;
     protected String selectedNickname;
     protected String selectedButton;
     protected String identifyButton;
@@ -104,11 +103,16 @@ public class MainActivity extends AppCompatActivity {
         textArea = findViewById(R.id.textView);
 
         loginField = findViewById(R.id.login);
+        loginField.setTextColor(Color.WHITE);
         passField = findViewById(R.id.password);
+        passField.setTextColor(Color.WHITE);
 
         nicknameReg = findViewById(R.id.nicknameReg);
+        nicknameReg.setTextColor(Color.WHITE);
         loginReg = findViewById(R.id.loginReg);
+        loginReg.setTextColor(Color.WHITE);
         passReg = findViewById(R.id.passwordReg);
+        passReg.setTextColor(Color.WHITE);
 
         exit = findViewById(R.id.btn_exit);
         sendAuth = findViewById(R.id.btn_auth);
@@ -143,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
         spinner = findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                Object item = parent.getItemAtPosition(pos);
                 selectedNickname = spinner.getSelectedItem().toString();
                 if (!selectedNickname.equals("Пользователи группы:")) {
                     selectedButton = selectedNickname;
@@ -208,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
         MenuItem joinGroup = menu.findItem(R.id.btn_join_group);
         MenuItem leaveGroup = menu.findItem(R.id.btn_delete_group);
         MenuItem deleteNicks = menu.findItem(R.id.btn_clear_nicks);
+        MenuItem restoreContacts = menu.findItem(R.id.btn_restore_contacts);
         MenuItem clearALLChats = menu.findItem(R.id.btn_clear_all);
         MenuItem clearChat = menu.findItem(R.id.btn_clear);
         MenuItem logout = menu.findItem(R.id.btn_logout);
@@ -218,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
             joinGroup.setVisible(false);
             leaveGroup.setVisible(false);
             deleteNicks.setVisible(false);
+            restoreContacts.setVisible(false);
             clearALLChats.setVisible(false);
             clearChat.setVisible(false);
             logout.setVisible(false);
@@ -227,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
             joinGroup.setVisible(true);
             leaveGroup.setVisible(true);
             deleteNicks.setVisible(true);
+            restoreContacts.setVisible(true);
             clearALLChats.setVisible(false);
             clearChat.setVisible(false);
             logout.setVisible(true);
@@ -236,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
             joinGroup.setVisible(false);
             leaveGroup.setVisible(false);
             deleteNicks.setVisible(false);
+            restoreContacts.setVisible(false);
             clearALLChats.setVisible(true);
             clearChat.setVisible(true);
             logout.setVisible(true);
@@ -259,6 +266,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.btn_clear_nicks:
                 clearSavedNick();
+                break;
+            case R.id.btn_restore_contacts:
+                chatWork.restoreContacts();
                 break;
             case R.id.btn_clear_all:
                 clearAllChat();
@@ -348,8 +358,8 @@ public class MainActivity extends AppCompatActivity {
             fos = openFileOutput("AllContacts.txt", Context.MODE_APPEND);
             fis = openFileInput("AllContacts.txt");
             if (fis.available() == 0) {
-                chatHistory.writeChatHistory("1 " + "Семья");
-                chatHistory.writeChatHistory("1 " + "Работа");
+                chatHistory.writeChatHistory("1 " + "Family");
+                chatHistory.writeChatHistory("1 " + "Hospital 68");
                 chatHistory.writeChatHistory("1 " + "GeekBrains");
                 chatHistory.writeChatHistory("1 " + "Общий Чат");
                 chatWork.savePass("Общий Чат", "0");
@@ -383,6 +393,7 @@ public class MainActivity extends AppCompatActivity {
     long startTime;
     @SuppressLint("ClickableViewAccessibility")
     public void viewButton() {
+        String newVisualName;
         LinearLayout.MarginLayoutParams params = new LinearLayout.MarginLayoutParams(
                 LinearLayout.MarginLayoutParams.MATCH_PARENT,
                 LinearLayout.MarginLayoutParams.WRAP_CONTENT);
@@ -391,8 +402,10 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < buttons.size(); i++) {
             buttons.get(i).setId(i);
             final int id_ = buttons.get(i).getId();
-            String name = buttonName.get(i);
-            buttons.get(i).setText(name.split("\\s+", 2)[1]);
+            String nameButton = buttonName.get(i).split("\\s+", 2)[1];
+            newVisualName = chatWork.checkNewName(nameButton);
+            if (newVisualName.equals(nameButton)) buttons.get(i).setText(nameButton);
+            else buttons.get(i).setText(newVisualName);
             buttons.get(i).getBackground().setAlpha(100);
             buttons.get(i).setTextColor(Color.WHITE);
             params.height = 270;
@@ -443,7 +456,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setNameOnChat() {
-        contact.setText(selectedButton);
+        String newVisualName = chatWork.checkNewName(selectedButton);
+        if (newVisualName.equals(selectedButton)) contact.setText(selectedButton);
+        else contact.setText(newVisualName);
         spinner.setVisibility(View.INVISIBLE);
         contact.setVisibility(View.VISIBLE);
     }
@@ -452,12 +467,13 @@ public class MainActivity extends AppCompatActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
             case MENU_LIST:
-                final String[] choose = {"Удалить Чат " + selectedButton + "?", "Отмена ..."};
+                final String[] choose = {"Переименовать контакт?", "Удалить Чат " + selectedButton + "?", "Отмена ..."};
                 alertDialog = new AlertDialog.Builder(this);
                 alertDialog.setTitle("Удалить выбранный Чат?"); // заголовок для диалога
                 alertDialog.setItems(choose, (dialog, item) -> {
-                    if (item == 0) chatWork.deleteGroupChat(selectedButton);
-                    if (item == 1) Toast.makeText(getApplicationContext(),"Выбрано: " + choose[item], Toast.LENGTH_SHORT).show();
+                    if (item == 0 && identifyButton.equals("0")) chatWork.makeNewName(selectedButton);
+                    if (item == 1) chatWork.deleteGroupChat(selectedButton);
+                    if (item == 2) Toast.makeText(getApplicationContext(),"Выбрано: " + choose[item], Toast.LENGTH_SHORT).show();
                 });
                 alertDialog.setCancelable(false);
                 return alertDialog.create();
@@ -485,8 +501,6 @@ public class MainActivity extends AppCompatActivity {
                         chatWork.savePass(selectedButton, passGroup);
                     }
         });
-//      Intent myIntent = new Intent(chatLayout.getContext(), MainActivity.class);
-//      startActivityForResult(myIntent, 0);
         alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
         alertDialog.show();
     }
@@ -517,7 +531,7 @@ public class MainActivity extends AppCompatActivity {
         if (identifyButton.equals("0")) {
             PrivateMessage msg = new PrivateMessage();
             msg.from = nickName;
-            msg.to = selectedNickname;
+            msg.to = selectedButton;
             msg.message = message;
             return Message.createPrivate(msg);
         }
@@ -562,6 +576,10 @@ public class MainActivity extends AppCompatActivity {
         String loginText = loginReg.getText().toString();
         String passwordText = passReg.getText().toString();
         String nicknameText = nicknameReg.getText().toString();
+        if (nicknameText.split("\\s+").length > 1) {
+            messageService.serviceMessage("Никнейм должен быть без пробелов!");
+            return;
+        }
         RegisterMessage msg = new RegisterMessage();
         msg.nickname = nicknameText;
         msg.login = loginText;
