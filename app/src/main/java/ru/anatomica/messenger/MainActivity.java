@@ -166,8 +166,12 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         try {
             fisLogin = openFileInput(login);
-            TimeUnit.MILLISECONDS.sleep(500);
-            if (fisLogin.available() != 0 && fisLogin != null) auth();
+            if (fisLogin.available() != 0 && fisLogin != null) {
+                findViewById(R.id.btn_register).setVisibility(View.INVISIBLE);
+                findViewById(R.id.btn_login).setVisibility(View.INVISIBLE);
+                TimeUnit.MILLISECONDS.sleep(700);
+                auth();
+            }
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }

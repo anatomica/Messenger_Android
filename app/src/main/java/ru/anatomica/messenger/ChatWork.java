@@ -249,9 +249,13 @@ class ChatWork {
 
             alertDialog.setPositiveButton("Переименовать!", (dialog, which) -> {
                 String newName = input.getText().toString();
+                if (newName.split("\\s+").length > 1) {
+                    messageService.serviceMessage("Имя должно быть без пробелов!");
+                    return;
+                }
                 if (newName.compareTo("") > 0 && !newName.equals("") && !newName.startsWith(" ") && newName != null) {
                     writeNewName(selectedButton, newName);
-                } else mainActivity.runOnUiThread(() -> messageService.serviceMessage("Пожалуйста, введите пароль!"));
+                } else mainActivity.runOnUiThread(() -> messageService.serviceMessage("Пожалуйста, введите желаемое имя!"));
             });
             alertDialog.setNegativeButton("Отмена!", (dialog, which) -> dialog.cancel());
             alertDialog.show();
