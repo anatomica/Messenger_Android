@@ -11,6 +11,7 @@
     <string name="restore_all_contacts">Восстановить имена контактов</string>
     <string name="clear_all_chats">Очистить ВСЕ чаты</string>
     <string name="clear">Очистить этот чат</string>
+    <string name="change_nickname">Сменить никнейм</string>
     <string name="logout">Логаут</string>
     <string name="exit">Выход</string>
     <string name="msg_subscribed">Subscribed to weather topic</string>

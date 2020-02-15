@@ -35,12 +35,16 @@
         android:id="@+id/btn_clear"
         android:orderInCategory="107"
         android:title="@string/clear" />
+<!--    <item-->
+<!--        android:id="@+id/btn_changeNick"-->
+<!--        android:orderInCategory="108"-->
+<!--        android:title="@string/change_nickname" />-->
     <item
         android:id="@+id/btn_logout"
-        android:orderInCategory="108"
+        android:orderInCategory="109"
         android:title="@string/logout" />
     <item
         android:id="@+id/btn_exit"
-        android:orderInCategory="109"
+        android:orderInCategory="110"
         android:title="@string/exit" />
 </menu>

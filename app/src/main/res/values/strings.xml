@@ -10,6 +10,7 @@
     <string name="restore_all_contacts">Restore Contacts Name</string>
     <string name="clear_all_chats">Clear All Chats</string>
     <string name="clear">Clear This Chat</string>
+    <string name="change_nickname">Change Nickname</string>
     <string name="logout">Logout</string>
     <string name="exit">Exit</string>
     <string name="msg_subscribed">Subscribed to weather topic</string>

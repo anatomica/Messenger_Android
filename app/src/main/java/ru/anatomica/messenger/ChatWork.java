@@ -1,5 +1,6 @@
 package ru.anatomica.messenger;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.view.View;
@@ -7,10 +8,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import ru.anatomica.messenger.gson.ClientListMessage;
 import ru.anatomica.messenger.gson.Message;
 import ru.anatomica.messenger.gson.WorkWithGroup;
 
@@ -285,5 +289,21 @@ class ChatWork {
         }
         mainActivity.runOnUiThread(mainActivity::loadAllContacts);
         mainActivity.runOnUiThread(mainActivity::createBtn);
+    }
+
+    @SuppressLint("SetTextI18n")
+    public void clientListOnline(ClientListMessage clientListMessage) throws FileNotFoundException {
+        List<String> nicknames = new ArrayList<>(clientListMessage.online);
+        mainActivity.fos = mainActivity.openFileOutput("NewName.txt", Context.MODE_APPEND);
+        String newVisualName = checkNewName(mainActivity.selectedButton);
+        if (mainActivity.contact.getVisibility() == View.VISIBLE) {
+            for (String nickname : nicknames) {
+                if (nickname.equals(mainActivity.selectedButton)) {
+                    mainActivity.contact.setText(newVisualName + " (онлайн)");
+                    return;
+                }
+            }
+            mainActivity.contact.setText(newVisualName);
+        }
     }
 }

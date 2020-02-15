@@ -75,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     protected String selectedNickname;
     protected String selectedButton;
     protected String identifyButton;
+    protected String loginTextOnLogin;
+    protected String passwordTextOnLogin;
 
     protected AlertDialog.Builder alertDialog;
     private MessageService messageService;
@@ -148,10 +150,14 @@ public class MainActivity extends AppCompatActivity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                 selectedNickname = spinner.getSelectedItem().toString();
-                if (!selectedNickname.equals("Пользователи группы:")) {
+                if (!selectedNickname.equals("Пользователи группы:") && !selectedNickname.startsWith("Вы (")) {
                     selectedButton = selectedNickname;
                     openFile("0 ", selectedNickname);
                     setNameOnChat();
+                }
+                if (selectedNickname.startsWith("Вы (")) {
+                    messageService.serviceMessage("Это Вы ;)");
+                    clientList();
                 }
             }
             public void onNothingSelected(AdapterView<?> parent) {
@@ -165,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         try {
+            fosLogin = openFileOutput(login, Context.MODE_APPEND);
             fisLogin = openFileInput(login);
             if (fisLogin.available() != 0 && fisLogin != null) {
                 findViewById(R.id.btn_register).setVisibility(View.INVISIBLE);
@@ -218,6 +225,7 @@ public class MainActivity extends AppCompatActivity {
         MenuItem restoreContacts = menu.findItem(R.id.btn_restore_contacts);
         MenuItem clearALLChats = menu.findItem(R.id.btn_clear_all);
         MenuItem clearChat = menu.findItem(R.id.btn_clear);
+        // MenuItem changeNick = menu.findItem(R.id.btn_changeNick);
         MenuItem logout = menu.findItem(R.id.btn_logout);
 
         if (changeLayout.getVisibility() == View.VISIBLE || registerLayout.getVisibility() == View.VISIBLE ||
@@ -229,6 +237,7 @@ public class MainActivity extends AppCompatActivity {
             restoreContacts.setVisible(false);
             clearALLChats.setVisible(false);
             clearChat.setVisible(false);
+            // changeNick.setVisible(false);
             logout.setVisible(false);
         }
         if (chatLayout.getVisibility() == View.VISIBLE) {
@@ -239,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
             restoreContacts.setVisible(true);
             clearALLChats.setVisible(false);
             clearChat.setVisible(false);
+            // changeNick.setVisible(true);
             logout.setVisible(true);
         }
         if (messageLayout.getVisibility() == View.VISIBLE) {
@@ -249,6 +259,7 @@ public class MainActivity extends AppCompatActivity {
             restoreContacts.setVisible(false);
             clearALLChats.setVisible(true);
             clearChat.setVisible(true);
+            // changeNick.setVisible(false);
             logout.setVisible(true);
         }
         return true;
@@ -280,6 +291,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btn_clear:
                 clearChat();
                 break;
+//            case R.id.btn_changeNick:
+//                changeNick();
+//                break;
             case R.id.btn_logout:
                 logout();
                 break;
@@ -476,6 +490,7 @@ public class MainActivity extends AppCompatActivity {
                 alertDialog.setTitle("Удалить выбранный Чат?"); // заголовок для диалога
                 alertDialog.setItems(choose, (dialog, item) -> {
                     if (item == 0 && identifyButton.equals("0")) chatWork.makeNewName(selectedButton);
+                    if (item == 0 && identifyButton.equals("1")) messageService.serviceMessage("Вы не можете сменить имя группового чата!");
                     if (item == 1) chatWork.deleteGroupChat(selectedButton);
                     if (item == 2) Toast.makeText(getApplicationContext(),"Выбрано: " + choose[item], Toast.LENGTH_SHORT).show();
                 });
@@ -550,6 +565,12 @@ public class MainActivity extends AppCompatActivity {
         return Message.createGroup(msg);
     }
 
+    private Message buildChangeNick(String newNick) {
+        ChangeNick msg = new ChangeNick();
+        msg.nick = newNick;
+        return Message.createNick(msg);
+    }
+
     private String prepareToView(String message) {
         return message.replaceAll("/w\\s+", "[private]: ");
     }
@@ -580,7 +601,13 @@ public class MainActivity extends AppCompatActivity {
         String loginText = loginReg.getText().toString();
         String passwordText = passReg.getText().toString();
         String nicknameText = nicknameReg.getText().toString();
-        if (nicknameText.split("\\s+").length > 1) {
+        if (nicknameText.equals("") || passwordText.equals("") ||
+                passwordText.equals(" ") || loginText.equals("") || loginText.equals(" ")) {
+            messageService.serviceMessage("Никнейм / Логин / Пароль не могут быть пустыми!");
+            return;
+        }
+        if (nicknameText.split("\\s+").length > 1 || nicknameText.equals(" ") ||
+                nicknameText.startsWith(" ") || nicknameText.endsWith(" ")) {
             messageService.serviceMessage("Никнейм должен быть без пробелов!");
             return;
         }
@@ -593,31 +620,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void sendAuth() {
-//        messageService.startConnectionToServer();
-//        TimeUnit.SECONDS.sleep(1);
+        loginTextOnLogin = loginField.getText().toString();
+        passwordTextOnLogin = passField.getText().toString();
 
-        String loginText = loginField.getText().toString();
-        String passwordText = passField.getText().toString();
-        try {
-            fosLogin = openFileOutput(login, Context.MODE_PRIVATE);
-            fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
-            fosLogin.write(loginText.getBytes());
-            fosPasswd.write(passwordText.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         AuthMessage msg = new AuthMessage();
-        msg.login = loginText;
-        msg.password = passwordText;
+        msg.login = loginTextOnLogin;
+        msg.password = passwordTextOnLogin;
         msg.token = refreshToken;
         Message authMsg = Message.createAuth(msg);
         messageService.sendMessage(authMsg.toJson());
     }
 
-    public void auth() throws IOException {
-//        messageService.startConnectionToServer();
-//        TimeUnit.SECONDS.sleep(1);
+    public void saveLoginPass() {
+        try {
+            fosLogin = openFileOutput(login, Context.MODE_PRIVATE);
+            fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
+            fosLogin.write(loginTextOnLogin.getBytes());
+            fosPasswd.write(passwordTextOnLogin.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void auth() throws IOException {
         fisLogin = openFileInput(login);
         fisPasswd = openFileInput(password);
 
@@ -683,7 +708,36 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void changeNick() {
+        alertDialog = new AlertDialog.Builder(MainActivity.this);
+        alertDialog.setTitle("Смена никнейма");
+        alertDialog.setMessage("Введите новый ник:");
+
+        final EditText input = new EditText(MainActivity.this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+        alertDialog.setPositiveButton("Сменить ник!", (dialog, which) -> {
+            String newNick = input.getText().toString();
+            if (newNick.split("\\s+").length > 1 || newNick.equals(" ") ||
+                    newNick.startsWith(" ") || newNick.endsWith(" ")) {
+                messageService.serviceMessage("Новый никнейм должен быть без пробелов!");
+                return;
+            } else {
+                Message msg = buildChangeNick(newNick);
+                messageService.sendMessage(msg.toJson());
+            }
+        });
+        alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
+
     public void clientList() {
+        messageService.clientListMessage.online.remove(nickName);
+        messageService.clientListMessage.online.remove(String.format("Вы (%s)", nickName));
+        messageService.clientListMessage.online.add(String.format("Вы (%s)", nickName));
         ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, messageService.clientListMessage.online);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(spinnerArrayAdapter);

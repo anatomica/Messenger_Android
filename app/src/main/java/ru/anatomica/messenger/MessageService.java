@@ -95,6 +95,8 @@ public class MessageService extends IntentService {
             mainActivity.runOnUiThread(this::loginToChat);
             mainActivity.runOnUiThread(mainActivity::loadAllContacts);
             mainActivity.runOnUiThread(mainActivity::createBtn);
+            if (mainActivity.fisLogin.available() == 0 && mainActivity.loginTextOnLogin != null &&
+            !mainActivity.loginTextOnLogin.equals("")) mainActivity.saveLoginPass();
             checkChange();
             return;
         }
@@ -103,7 +105,8 @@ public class MessageService extends IntentService {
                 message.equals("Сервер: Этот клиент не подключен!") || message.equals("Группа с данным именем существует!") ||
                 message.equals("Группа успешно создана!") || message.equals("Вы отписаны от рассылки из данной группы!") ||
                 message.equals("Неверный пароль!") || message.equals("Пароль задан!") ||
-                message.endsWith("зарегистрировался в Чате!")) {
+                message.endsWith("зарегистрировался в Чате!") || message.startsWith("Данный Ник занят!") ||
+                message.startsWith("Вы успешно сменили Ник на:")) {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
             return;
         }
@@ -125,7 +128,15 @@ public class MessageService extends IntentService {
             switch (m.command) {
                 case CLIENT_LIST:
                     clientListMessage = m.clientListMessage;
-                    mainActivity.runOnUiThread(this::clientList);
+                    if (clientListMessage.from.equals("Сервер")) {
+                        chatWork.clientListOnline(clientListMessage);
+                        break;
+                    }
+                    else mainActivity.runOnUiThread(this::clientList);
+                    break;
+                case CHANGE_NICK:
+                    ChangeNick changeNick = m.changeNick;
+                    nickname = changeNick.nick;
                     break;
                 case WORK_WITH_GROUP:
                     workWithGroup = m.workWithGroup;
