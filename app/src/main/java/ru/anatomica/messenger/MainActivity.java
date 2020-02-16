@@ -487,16 +487,16 @@ public class MainActivity extends AppCompatActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
             case MENU_LIST:
-                final String[] choose = {"Переименовать контакт?", "Удалить Чат " + selectedButton + "?", "Отмена ..."};
+                final String[] choose = {"Переименовать контакт ?", "Удалить выбранный чат ?", "Отмена ..."};
                 alertDialog = new AlertDialog.Builder(this);
-                alertDialog.setTitle("Удалить выбранный Чат?"); // заголовок для диалога
+                alertDialog.setTitle("Выбор действия:"); // заголовок для диалога
                 alertDialog.setItems(choose, (dialog, item) -> {
                     if (item == 0 && identifyButton.equals("0")) chatWork.makeNewName(selectedButton);
                     if (item == 0 && identifyButton.equals("1")) messageService.serviceMessage("Вы не можете сменить имя группового чата!");
                     if (item == 1) chatWork.deleteGroupChat(selectedButton);
                     if (item == 2) Toast.makeText(getApplicationContext(),"Выбрано: " + choose[item], Toast.LENGTH_SHORT).show();
                 });
-                alertDialog.setCancelable(false);
+                alertDialog.setCancelable(true);
                 return alertDialog.create();
             default:
                 return null;

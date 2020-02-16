@@ -293,17 +293,19 @@ class ChatWork {
 
     @SuppressLint("SetTextI18n")
     public void clientListOnline(ClientListMessage clientListMessage) throws FileNotFoundException {
-        List<String> nicknames = new ArrayList<>(clientListMessage.online);
-        mainActivity.fos = mainActivity.openFileOutput("NewName.txt", Context.MODE_APPEND);
-        String newVisualName = checkNewName(mainActivity.selectedButton);
-        if (mainActivity.contact.getVisibility() == View.VISIBLE) {
-            for (String nickname : nicknames) {
-                if (nickname.equals(mainActivity.selectedButton)) {
-                    mainActivity.contact.setText(newVisualName + " (онлайн)");
-                    return;
+        if (mainActivity.selectedButton != null) {
+            List<String> nicknames = new ArrayList<>(clientListMessage.online);
+            mainActivity.fos = mainActivity.openFileOutput("NewName.txt", Context.MODE_APPEND);
+            String newVisualName = checkNewName(mainActivity.selectedButton);
+            if (mainActivity.contact.getVisibility() == View.VISIBLE) {
+                for (String nickname : nicknames) {
+                    if (nickname.equals(mainActivity.selectedButton)) {
+                        mainActivity.contact.setText(newVisualName + " (онлайн)");
+                        return;
+                    }
                 }
+                mainActivity.contact.setText(newVisualName);
             }
-            mainActivity.contact.setText(newVisualName);
         }
     }
 }
