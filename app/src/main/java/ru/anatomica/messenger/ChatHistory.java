@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.text.Spannable;
 import android.text.style.ForegroundColorSpan;
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 class ChatHistory {
 
@@ -26,6 +27,11 @@ class ChatHistory {
     }
 
     void outputPath(String addNew, String name, String fileHistory, String from, String message) throws FileNotFoundException {
+        try {
+            TimeUnit.MILLISECONDS.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         mainActivity.fos = mainActivity.openFileOutput( addNew + name + fileHistory, Context.MODE_APPEND);
         writeChatHistory(from + " : " + message);
     }

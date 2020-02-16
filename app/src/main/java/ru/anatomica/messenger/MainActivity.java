@@ -6,7 +6,6 @@ import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -152,8 +151,10 @@ public class MainActivity extends AppCompatActivity {
                 selectedNickname = spinner.getSelectedItem().toString();
                 if (!selectedNickname.equals("Пользователи группы:") && !selectedNickname.startsWith("Вы (")) {
                     selectedButton = selectedNickname;
+                    identifyButton = "0";
                     openFile("0 ", selectedNickname);
                     setNameOnChat();
+                    requestClientOnline(selectedNickname);
                 }
                 if (selectedNickname.startsWith("Вы (")) {
                     messageService.serviceMessage("Это Вы ;)");
@@ -225,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
         MenuItem restoreContacts = menu.findItem(R.id.btn_restore_contacts);
         MenuItem clearALLChats = menu.findItem(R.id.btn_clear_all);
         MenuItem clearChat = menu.findItem(R.id.btn_clear);
-        // MenuItem changeNick = menu.findItem(R.id.btn_changeNick);
+        MenuItem changeNick = menu.findItem(R.id.btn_changeNick);
         MenuItem logout = menu.findItem(R.id.btn_logout);
 
         if (changeLayout.getVisibility() == View.VISIBLE || registerLayout.getVisibility() == View.VISIBLE ||
@@ -237,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
             restoreContacts.setVisible(false);
             clearALLChats.setVisible(false);
             clearChat.setVisible(false);
-            // changeNick.setVisible(false);
+            changeNick.setVisible(false);
             logout.setVisible(false);
         }
         if (chatLayout.getVisibility() == View.VISIBLE) {
@@ -248,7 +249,7 @@ public class MainActivity extends AppCompatActivity {
             restoreContacts.setVisible(true);
             clearALLChats.setVisible(false);
             clearChat.setVisible(false);
-            // changeNick.setVisible(true);
+            changeNick.setVisible(true);
             logout.setVisible(true);
         }
         if (messageLayout.getVisibility() == View.VISIBLE) {
@@ -259,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
             restoreContacts.setVisible(false);
             clearALLChats.setVisible(true);
             clearChat.setVisible(true);
-            // changeNick.setVisible(false);
+            changeNick.setVisible(false);
             logout.setVisible(true);
         }
         return true;
@@ -291,9 +292,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.btn_clear:
                 clearChat();
                 break;
-//            case R.id.btn_changeNick:
-//                changeNick();
-//                break;
+            case R.id.btn_changeNick:
+                changeNick();
+                break;
             case R.id.btn_logout:
                 logout();
                 break;
@@ -458,6 +459,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             if (identifyButton.equals("0")) {
                                 openFile(identifyButton + " ", selectedButton);
+                                requestClientOnline(selectedButton);
                                 setNameOnChat();
                             }
                         }
@@ -524,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
-    private void sendMessage () {
+    private void sendMessage() {
         sendMessageAction();
     }
 
@@ -532,6 +534,13 @@ public class MainActivity extends AppCompatActivity {
         List<String> nameGroup = new ArrayList<>();
         nameGroup.add(nameButton);
         Message msg = Message.createClientList(nameGroup, nickName);
+        messageService.sendMessage(msg.toJson());
+    }
+
+    public void requestClientOnline(String nameButton) {
+        List<String> nameClient = new ArrayList<>();
+        nameClient.add(nameButton);
+        Message msg = Message.createClientList(nameClient, "Request");
         messageService.sendMessage(msg.toJson());
     }
 
@@ -706,6 +715,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        loadAllContacts();
+        createBtn();
     }
 
     private void changeNick() {

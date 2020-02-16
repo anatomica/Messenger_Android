@@ -102,11 +102,11 @@ public class MessageService extends IntentService {
         }
         if (message.equals("") || message.endsWith("лайн!") || message.equals("Неверные логин/пароль!") ||
                 message.equals("Учетная запись уже используется!") || message.endsWith("выберите другой Логин!") ||
-                message.equals("Сервер: Этот клиент не подключен!") || message.equals("Группа с данным именем существует!") ||
-                message.equals("Группа успешно создана!") || message.equals("Вы отписаны от рассылки из данной группы!") ||
-                message.equals("Неверный пароль!") || message.equals("Пароль задан!") ||
-                message.endsWith("зарегистрировался в Чате!") || message.startsWith("Данный Ник занят!") ||
-                message.startsWith("Вы успешно сменили Ник на:")) {
+                message.equals("Сервер: Этот клиент не подключен!") || message.equals("Сервер: Этот клиент не зарегистрирован!") ||
+                message.equals("Группа с данным именем существует!") || message.equals("Группа успешно создана!") ||
+                message.equals("Вы отписаны от рассылки из данной группы!") || message.equals("Неверный пароль!") ||
+                message.equals("Пароль задан!") || message.endsWith("зарегистрировался в Чате!") ||
+                message.startsWith("Данный Ник занят!")) {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
             return;
         }
@@ -119,7 +119,7 @@ public class MessageService extends IntentService {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
             return;
         }
-        if (message.endsWith("Пожалуйста, войдите в\nприложение заного!")) {
+        if (message.endsWith("Пожалуйста, войдите в\nприложение заного!") || message.startsWith("Вы успешно сменили Ник на:")) {
             mainActivity.runOnUiThread(() -> serviceMessage(message));
             logoutAfterReg();
             return;
