@@ -3,6 +3,7 @@ package ru.anatomica.messenger;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.view.Menu;
 import android.view.View;
 import android.widget.*;
 import androidx.annotation.Nullable;
@@ -26,13 +27,15 @@ public class MessageService extends IntentService {
     private WorkWithGroup workWithGroup;
     private MainActivity mainActivity;
     public EditText textMessage;
+    public EditText textArea;
     private ChatWork chatWork;
     private ChatHistory chatHistory;
     private Network network;
-    private String nickname;
+    public String nickname;
 
     MessageService(MainActivity mainActivity, boolean needStopServerOnClosed) {
         super(MESSAGING_SERVICE_NAME);
+        this.textArea = mainActivity.textArea;
         this.textMessage = mainActivity.textMessage;
         this.mainActivity = mainActivity;
         this.chatWork = new ChatWork(mainActivity, this);
@@ -73,18 +76,20 @@ public class MessageService extends IntentService {
 
     public void sendMessage(String message) {
         network.send(message);
-        try {
-        if (!textMessage.getText().toString().equals("")) {
-            if (mainActivity.selectedNickname == null || mainActivity.selectedNickname.equals("Пользователи группы:")) {
-                mainActivity.fos = mainActivity.openFileOutput(mainActivity.selectedButton + mainActivity.fileHistory, Context.MODE_APPEND);
-                chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
-            }
-            if (!mainActivity.selectedNickname.equals("Пользователи группы:")) {
-                mainActivity.fos = mainActivity.openFileOutput(mainActivity.selectedNickname + mainActivity.fileHistory, Context.MODE_APPEND);
-                chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
-            }
-        } } catch (FileNotFoundException e) {
+        if (network.socket != null) {
+            try {
+                if (!textMessage.getText().toString().equals("")) {
+                    if (mainActivity.selectedNickname == null || mainActivity.selectedNickname.equals("Пользователи группы:")) {
+                        mainActivity.fos = mainActivity.openFileOutput(mainActivity.selectedButton + mainActivity.fileHistory, Context.MODE_APPEND);
+                        chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
+                    }
+                    if (!mainActivity.selectedNickname.equals("Пользователи группы:")) {
+                        mainActivity.fos = mainActivity.openFileOutput(mainActivity.selectedNickname + mainActivity.fileHistory, Context.MODE_APPEND);
+                        chatHistory.writeChatHistory("Я: " + textMessage.getText().toString());
+                    }
+                } } catch (FileNotFoundException e) {
                 e.printStackTrace();
+            }
         }
     }
 
@@ -92,11 +97,11 @@ public class MessageService extends IntentService {
         if (message.startsWith("/authOk")) {
             nickname = message.split("\\s+")[1];
             mainActivity.nickName = nickname;
+            // if (mainActivity.chatLayout.getVisibility() == View.INVISIBLE)
             mainActivity.runOnUiThread(this::loginToChat);
             mainActivity.runOnUiThread(mainActivity::loadAllContacts);
             mainActivity.runOnUiThread(mainActivity::createBtn);
-            if (mainActivity.fisLogin.available() == 0 && mainActivity.loginTextOnLogin != null &&
-            !mainActivity.loginTextOnLogin.equals("")) mainActivity.saveLoginPass();
+            mainActivity.saveLoginPass();
             checkChange();
             return;
         }
@@ -220,6 +225,18 @@ public class MessageService extends IntentService {
         mainActivity.clientList();
     }
 
+    void auth() throws IOException {
+        mainActivity.auth();
+    }
+
+    public void loadOffline() {
+        mainActivity.loadButtonOffline();
+    }
+
+    public void addToChatWindow(String message) {
+        if (network.socket != null) textArea.append("Я: " + message + System.lineSeparator());
+    }
+
     void openFile() {
         mainActivity.openFile("1 ", workWithGroup.nameGroup);
     }
@@ -267,8 +284,8 @@ public class MessageService extends IntentService {
     public void checkChange() {
         try {
             TimeUnit.SECONDS.sleep(1);
-            if (mainActivity.loginLayout.getVisibility() == View.VISIBLE)
-                mainActivity.runOnUiThread(() -> serviceMessage("Ошибка аутентификации!"));
+            if (mainActivity.loginLayout.getVisibility() == View.VISIBLE) messageToService("Ошибка аутентификации!");
+            else messageToService("Соединение с сервером установлено!");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -283,6 +300,10 @@ public class MessageService extends IntentService {
         }
     }
 
+    public void messageToService(String message) {
+        mainActivity.runOnUiThread(() -> serviceMessage(message));
+    }
+
     public void serviceMessage(String message) {
         Toast.makeText(mainActivity, message, Toast.LENGTH_LONG).show();
     }
@@ -291,7 +312,19 @@ public class MessageService extends IntentService {
         if (needStopServerOnClosed) {
             sendMessage(STOP_SERVER_COMMAND);
         }
-        network.close();
+        if (network.socket != null) network.close();
         System.exit(0);
+    }
+
+    public boolean checkNetwork() {
+        if (network.socket != null) return true;
+        else {
+            mainActivity.openFile("1 ", mainActivity.selectedButton);
+            mainActivity.spinner.setVisibility(View.INVISIBLE);
+            mainActivity.contact.setVisibility(View.VISIBLE);
+            mainActivity.contact.setText(mainActivity.selectedButton);
+            messageToService("Нет соединения с сервером!");
+            return false;
+        }
     }
 }

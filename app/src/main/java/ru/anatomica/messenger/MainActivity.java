@@ -1,6 +1,5 @@
 package ru.anatomica.messenger;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationChannel;
@@ -17,7 +16,6 @@ import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewManager;
 import android.widget.*;
@@ -157,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                     requestClientOnline(selectedNickname);
                 }
                 if (selectedNickname.startsWith("Вы (")) {
-                    messageService.serviceMessage("Это Вы ;)");
+                    messageService.serviceMessage("Это Вы, " + nickName);
                     clientList();
                 }
             }
@@ -180,6 +178,8 @@ public class MainActivity extends AppCompatActivity {
                 TimeUnit.MILLISECONDS.sleep(700);
                 auth();
             }
+            fosLogin.close();
+            fisLogin.close();
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
         }
@@ -208,7 +208,11 @@ public class MainActivity extends AppCompatActivity {
         }
         if (changeLayout.getVisibility() == View.VISIBLE) {
             System.exit(0);
-        } else shutdown();
+            return;
+        }
+        if (chatLayout.getVisibility() == View.VISIBLE) {
+            shutdown();
+        }
     }
 
     @Override
@@ -409,8 +413,6 @@ public class MainActivity extends AppCompatActivity {
         buttons.clear();
     }
 
-    long startTime;
-    @SuppressLint("ClickableViewAccessibility")
     public void viewButton() {
         String newVisualName;
         LinearLayout.MarginLayoutParams params = new LinearLayout.MarginLayoutParams(
@@ -434,42 +436,29 @@ public class MainActivity extends AppCompatActivity {
             chatLayoutInto.addView(buttons.get(i), params);
 
             int finalI = i;
-            buttons.get(i).setOnTouchListener((v, event) -> {
+            buttons.get(i).setOnClickListener(v -> {
                 String textButton = buttonName.get(finalI);
                 identifyButton = textButton.split("\\s+")[0];
                 selectedButton = textButton.split("\\s+", 2)[1];
                 selectedNickname = textButton.split("\\s+", 2)[1];
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        startTime = System.currentTimeMillis();
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        long totalTime = System.currentTimeMillis() - startTime;
-                        long totalSeconds = totalTime / 1000;
-                        if (totalSeconds < 1) {
-                            if (identifyButton.equals("1")) {
-                                if (!chatWork.autoLoginToGroup(selectedButton)) {
-                                    openDialogPass();
-                                    contact.setVisibility(View.INVISIBLE);
-                                    spinner.setVisibility(View.VISIBLE);
-                                    requestClientsList(selectedButton);
-                                }
-                            }
-                            if (identifyButton.equals("0")) {
-                                openFile(identifyButton + " ", selectedButton);
-                                requestClientOnline(selectedButton);
-                                setNameOnChat();
-                            }
+                if (identifyButton.equals("1")) {
+                    if (messageService.checkNetwork()) {
+                        if (!chatWork.autoLoginToGroup(selectedButton)) {
+                            openDialogPass();
+                            contact.setVisibility(View.INVISIBLE);
+                            spinner.setVisibility(View.VISIBLE);
+                            requestClientsList(selectedButton);
                         }
-                        if (totalSeconds >= 1) {
-                            showDialog(MENU_LIST);
-                        }
-                        break;
-                    case MotionEvent.ACTION_CANCEL:
-                        break;
+                    }
                 }
+                if (identifyButton.equals("0")) {
+                    openFile(identifyButton + " ", selectedButton);
+                    requestClientOnline(selectedButton);
+                    setNameOnChat();
+                }
+            });
+            buttons.get(i).setOnLongClickListener(v -> {
+                showDialog(MENU_LIST);
                 return true;
             });
         }
@@ -549,7 +538,7 @@ public class MainActivity extends AppCompatActivity {
         Message msg = buildMessage(message);
         messageService.sendMessage(msg.toJson());
         textMessage.setText("");
-        textArea.append("Я: " + prepareToView(message) + System.lineSeparator());
+        messageService.addToChatWindow(message);
     }
 
     private Message buildMessage(String message) {
@@ -580,10 +569,6 @@ public class MainActivity extends AppCompatActivity {
         return Message.createNick(msg);
     }
 
-    private String prepareToView(String message) {
-        return message.replaceAll("/w\\s+", "[private]: ");
-    }
-
     public void logout() {
         String log = "";
         String pass = "";
@@ -592,6 +577,8 @@ public class MainActivity extends AppCompatActivity {
             fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
             fosLogin.write(log.getBytes());
             fosPasswd.write(pass.getBytes());
+            fosLogin.close();
+            fosPasswd.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -642,10 +629,34 @@ public class MainActivity extends AppCompatActivity {
 
     public void saveLoginPass() {
         try {
-            fosLogin = openFileOutput(login, Context.MODE_PRIVATE);
-            fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
-            fosLogin.write(loginTextOnLogin.getBytes());
-            fosPasswd.write(passwordTextOnLogin.getBytes());
+            fosLogin = openFileOutput(login, Context.MODE_APPEND);
+            fosPasswd = openFileOutput(password, Context.MODE_APPEND);
+            fisLogin = openFileInput(login);
+            if (fisLogin.available() == 0 && loginTextOnLogin != null && !loginTextOnLogin.equals("")) {
+                fosLogin = openFileOutput(login, Context.MODE_PRIVATE);
+                fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
+                fosLogin.write(loginTextOnLogin.getBytes());
+                fosPasswd.write(passwordTextOnLogin.getBytes());
+            }
+            fosLogin.close();
+            fosPasswd.close();
+            // fisLogin.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected void loadButtonOffline() {
+        try {
+            fosLogin = openFileOutput(login, Context.MODE_APPEND);
+            fisLogin = openFileInput(login);
+            if (fisLogin.available() != 0 && fisLogin != null) {
+                runOnUiThread(messageService::loginToChat);
+                runOnUiThread(this::loadAllContacts);
+                runOnUiThread(this::createBtn);
+            }
+            fosLogin.close();
+            fisLogin.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
