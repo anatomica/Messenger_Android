@@ -3,7 +3,6 @@ package ru.anatomica.messenger;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.view.Menu;
 import android.view.View;
 import android.widget.*;
 import androidx.annotation.Nullable;
@@ -19,6 +18,7 @@ public class MessageService extends IntentService {
     private static final String HOST_PORT_PROP = "server.port";
     private static final String STOP_SERVER_COMMAND = "/end";
 
+    private long timeStart = System.currentTimeMillis();
     private String hostAddress;
     private int hostPort;
 
@@ -97,7 +97,6 @@ public class MessageService extends IntentService {
         if (message.startsWith("/authOk")) {
             nickname = message.split("\\s+")[1];
             mainActivity.nickName = nickname;
-            // if (mainActivity.chatLayout.getVisibility() == View.INVISIBLE)
             mainActivity.runOnUiThread(this::loginToChat);
             mainActivity.runOnUiThread(mainActivity::loadAllContacts);
             mainActivity.runOnUiThread(mainActivity::createBtn);
@@ -285,7 +284,7 @@ public class MessageService extends IntentService {
         try {
             TimeUnit.SECONDS.sleep(1);
             if (mainActivity.loginLayout.getVisibility() == View.VISIBLE) messageToService("Ошибка аутентификации!");
-            else messageToService("Соединение с сервером установлено!");
+            else if (System.currentTimeMillis() - timeStart > 5000) messageToService("Соединение с сервером установлено!");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -316,14 +315,13 @@ public class MessageService extends IntentService {
         System.exit(0);
     }
 
-    public boolean checkNetwork() {
+    public boolean checkNetwork(String identifyButton) {
         if (network.socket != null) return true;
         else {
-            mainActivity.openFile("1 ", mainActivity.selectedButton);
-            mainActivity.spinner.setVisibility(View.INVISIBLE);
-            mainActivity.contact.setVisibility(View.VISIBLE);
-            mainActivity.contact.setText(mainActivity.selectedButton);
-            messageToService("Нет соединения с сервером!");
+            if (identifyButton.equals("0")) mainActivity.openFile("0 ", mainActivity.selectedButton);
+            if (identifyButton.equals("1")) mainActivity.openFile("1 ", mainActivity.selectedButton);
+            mainActivity.setNameOnChat();
+            mainActivity.requestClientOnline(mainActivity.selectedButton);
             return false;
         }
     }

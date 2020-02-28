@@ -23,7 +23,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
 import ru.anatomica.messenger.gson.*;
 
 public class MainActivity extends AppCompatActivity {
@@ -169,20 +169,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        try {
-            fosLogin = openFileOutput(login, Context.MODE_APPEND);
-            fisLogin = openFileInput(login);
-            if (fisLogin.available() != 0 && fisLogin != null) {
-                findViewById(R.id.btn_register).setVisibility(View.INVISIBLE);
-                findViewById(R.id.btn_login).setVisibility(View.INVISIBLE);
-                TimeUnit.MILLISECONDS.sleep(700);
-                auth();
-            }
-            fosLogin.close();
-            fisLogin.close();
-        } catch (InterruptedException | IOException e) {
-            e.printStackTrace();
-        }
+        auth();
     }
 
     @Override
@@ -442,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
                 selectedButton = textButton.split("\\s+", 2)[1];
                 selectedNickname = textButton.split("\\s+", 2)[1];
                 if (identifyButton.equals("1")) {
-                    if (messageService.checkNetwork()) {
+                    if (messageService.checkNetwork(identifyButton)) {
                         if (!chatWork.autoLoginToGroup(selectedButton)) {
                             openDialogPass();
                             contact.setVisibility(View.INVISIBLE);
@@ -452,19 +439,22 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 if (identifyButton.equals("0")) {
-                    openFile(identifyButton + " ", selectedButton);
-                    requestClientOnline(selectedButton);
-                    setNameOnChat();
+                    if (messageService.checkNetwork(identifyButton)) {
+                        openFile(identifyButton + " ", selectedButton);
+                        requestClientOnline(selectedButton);
+                        setNameOnChat();
+                    }
                 }
             });
             buttons.get(i).setOnLongClickListener(v -> {
+                selectedButton = buttonName.get(finalI).split("\\s+", 2)[1];
                 showDialog(MENU_LIST);
                 return true;
             });
         }
     }
 
-    private void setNameOnChat() {
+    public void setNameOnChat() {
         String newVisualName = chatWork.checkNewName(selectedButton);
         if (newVisualName.equals(selectedButton)) contact.setText(selectedButton);
         else contact.setText(newVisualName);
@@ -476,7 +466,8 @@ public class MainActivity extends AppCompatActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
             case MENU_LIST:
-                final String[] choose = {"Переименовать контакт ?", "Удалить выбранный чат ?", "Отмена ..."};
+                String[] choose = {"Переименовать контакт ?", "", "Отмена ..."};
+                choose[1] = String.format("Удалить чат: '%s' ?", selectedButton);
                 alertDialog = new AlertDialog.Builder(this);
                 alertDialog.setTitle("Выбор действия:"); // заголовок для диалога
                 alertDialog.setItems(choose, (dialog, item) -> {
@@ -640,7 +631,6 @@ public class MainActivity extends AppCompatActivity {
             }
             fosLogin.close();
             fosPasswd.close();
-            // fisLogin.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -662,28 +652,42 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void auth() throws IOException {
-        fisLogin = openFileInput(login);
-        fisPasswd = openFileInput(password);
+    public void auth() {
+        try {
+            fosLogin = openFileOutput(login, Context.MODE_APPEND);
+            fosPasswd = openFileOutput(password, Context.MODE_APPEND);
+            fisLogin = openFileInput(login);
+            fisPasswd = openFileInput(password);
 
-        int available = fisLogin.available();
-        byte[] bufLogin = new byte[available];
-        fisLogin.read(bufLogin);
-        String loginText = new String(bufLogin);
-        fisLogin.close();
+            if (fisLogin.available() != 0 && fisLogin != null) {
+                findViewById(R.id.btn_register).setVisibility(View.INVISIBLE);
+                findViewById(R.id.btn_login).setVisibility(View.INVISIBLE);
+                // TimeUnit.MILLISECONDS.sleep(700);
 
-        int available1 = fisPasswd.available();
-        byte[] bufPass = new byte[available1];
-        fisPasswd.read(bufPass);
-        String passwdText = new String(bufPass);
-        fisPasswd.close();
+                int available = fisLogin.available();
+                byte[] bufLogin = new byte[available];
+                fisLogin.read(bufLogin);
+                String loginText = new String(bufLogin);
+                fisLogin.close();
 
-        AuthMessage msg = new AuthMessage();
-        msg.login = loginText;
-        msg.password = passwdText;
-        msg.token = refreshToken;
-        Message authMsg = Message.createAuth(msg);
-        messageService.sendMessage(authMsg.toJson());
+                int available1 = fisPasswd.available();
+                byte[] bufPass = new byte[available1];
+                fisPasswd.read(bufPass);
+                String passwdText = new String(bufPass);
+                fisPasswd.close();
+
+                AuthMessage msg = new AuthMessage();
+                msg.login = loginText;
+                msg.password = passwdText;
+                msg.token = refreshToken;
+                Message authMsg = Message.createAuth(msg);
+                messageService.sendMessage(authMsg.toJson());
+            }
+            fosLogin.close();
+            fosPasswd.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void clearChat() {

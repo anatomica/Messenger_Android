@@ -16,7 +16,7 @@ public class Network implements Closeable {
     private final int port;
     private int countLoad = 0;
 
-    Socket socket;
+    protected Socket socket;
     private Thread readServerThread;
     private DataInputStream inputStream;
     private DataOutputStream outputStream;
@@ -28,19 +28,17 @@ public class Network implements Closeable {
         initNetworkState(serverAddress, port);
     }
 
-    private void initNetworkState(String serverAddress, int port) {
-        Thread thread = new Thread(() -> {
+    private void initNetworkState(String serverAddress, int port) throws IOException {
+        Thread initConnection = new Thread(() -> {
             try {
                 this.socket = new Socket(serverAddress, port);
                 this.inputStream = new DataInputStream(socket.getInputStream());
                 this.outputStream = new DataOutputStream(socket.getOutputStream());
-            } catch (SocketException | UnknownHostException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
-        thread.start();
+        initConnection.start();
 
         readServerThread = new Thread(this::readMessagesFromServer);
         readServerThread.setDaemon(true);
@@ -48,64 +46,77 @@ public class Network implements Closeable {
     }
 
     private void readMessagesFromServer() {
-        String message = null;
-        while (true) {
+
+        outbroke:
+        if (inputStream == null) {
             try {
-                if (inputStream != null) message = inputStream.readUTF();
-                if (socket != null && message != null){
-                    String copyMessage = message;
-                    Thread readServer = new Thread(() -> {
-                        try {
-                            messageService.processRetrievedMessage(copyMessage);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    });
-                    readServer.setDaemon(true);
-                    readServer.start();
+            Thread offlineRead = new Thread(() -> {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-                if (socket == null && countLoad == 0) {
+                if (inputStream == null && countLoad == 0) {
                     countLoad++;
-                    Thread offlineRead = new Thread(() -> {
-                        try {
-                            TimeUnit.SECONDS.sleep(3);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        if (socket == null) {
-                            messageService.loadOffline();
-                            messageService.messageToService("На данный момент сервер не доступен!");
-                        }
-                    });
-                    // offlineRead.setDaemon(true);
-                    offlineRead.start();
+                    messageService.loadOffline();
+                    messageService.messageToService("На данный момент сервер не доступен!");
+                    readServerThread.interrupt();
                 }
-            } catch (IOException e) {
-                System.out.println("Соединение с сервером было разорвано!");
-                break;
+            });
+            offlineRead.start();
+            offlineRead.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (inputStream == null) break outbroke;
+        }
+
+        outbroke2:
+        if (inputStream != null) {
+            while (true) {
+                try {
+                    String message = inputStream.readUTF();
+                    if (message != null) {
+                        Thread readServer = new Thread(() -> {
+                            try {
+                                messageService.processRetrievedMessage(message);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                        readServer.setDaemon(true);
+                        readServer.start();
+                    }
+                } catch (IOException e) {
+                    System.out.println("Соединение с сервером было разорвано!");
+                    break;
+                }
+                if (inputStream == null) break outbroke2;
             }
         }
     }
 
     void send (String message) {
         try {
-            if (socket == null) {
+            if (outputStream == null) {
                 initNetworkState(serverAddress, port);
                 Thread wait = new Thread(() -> {
                     try {
                         TimeUnit.MILLISECONDS.sleep(1000);
-                        if (socket != null) messageService.auth();
-                        else messageService.messageToService("Нет соединения с сервером!");
+                        if (outputStream != null) messageService.auth();
+                        else {
+                            if (!message.endsWith("\"CLIENT_LIST\"}")) messageService.messageToService("Нет соединения с сервером!");
+                            readServerThread.interrupt();
+                        }
                     } catch (InterruptedException | IOException e) {
                         e.printStackTrace();
                     }
                 });
-                // wait.setDaemon(true);
                 wait.start();
         }
             if (outputStream != null) outputStream.writeUTF(message);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to send message: " + message);
+            throw new RuntimeException("Ошибка отправки сообщения: " + message);
         }
     }
 
