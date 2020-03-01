@@ -98,24 +98,28 @@ public class Network implements Closeable {
 
     void send (String message) {
         try {
-            if (outputStream == null) {
-                initNetworkState(serverAddress, port);
-                Thread wait = new Thread(() -> {
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(1000);
-                        if (outputStream != null) messageService.auth();
-                        else {
-                            if (!message.endsWith("\"CLIENT_LIST\"}")) messageService.messageToService("Нет соединения с сервером!");
-                            readServerThread.interrupt();
-                        }
-                    } catch (InterruptedException | IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-                wait.start();
-        }
             if (outputStream != null) outputStream.writeUTF(message);
-        } catch (IOException e) {
+            if (outputStream == null) {
+                TimeUnit.MILLISECONDS.sleep(500);
+                if (outputStream != null) outputStream.writeUTF(message);
+                else {
+                    Thread wait = new Thread(() -> {
+                        try {
+                            initNetworkState(serverAddress, port);
+                            TimeUnit.MILLISECONDS.sleep(500);
+                            if (outputStream != null) messageService.auth();
+                            else {
+                                if (!message.endsWith("\"CLIENT_LIST\"}")) messageService.messageToService("Нет соединения с сервером!");
+                                readServerThread.interrupt();
+                            }
+                        } catch (InterruptedException | IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    wait.start();
+                }
+            }
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Ошибка отправки сообщения: " + message);
         }
     }

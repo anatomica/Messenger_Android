@@ -1,7 +1,6 @@
 package ru.anatomica.messenger;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -23,7 +22,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.concurrent.atomic.AtomicInteger;
 import ru.anatomica.messenger.gson.*;
 
 public class MainActivity extends AppCompatActivity {
@@ -64,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
     protected ArrayList<String> buttonName = new ArrayList<>();
     public InputStream serverAddressProp;
 
-    private final int MENU_LIST = 1;
     public String fileHistory = "History.txt";
     protected String login = "Login.txt";
     protected String password = "Password.txt";
@@ -447,8 +445,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             buttons.get(i).setOnLongClickListener(v -> {
+                identifyButton = buttonName.get(finalI).split("\\s+")[0];
                 selectedButton = buttonName.get(finalI).split("\\s+", 2)[1];
-                showDialog(MENU_LIST);
+                menuContact();
                 return true;
             });
         }
@@ -462,25 +461,27 @@ public class MainActivity extends AppCompatActivity {
         contact.setVisibility(View.VISIBLE);
     }
 
-    @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-            case MENU_LIST:
-                String[] choose = {"Переименовать контакт ?", "", "Отмена ..."};
-                choose[1] = String.format("Удалить чат: '%s' ?", selectedButton);
-                alertDialog = new AlertDialog.Builder(this);
-                alertDialog.setTitle("Выбор действия:"); // заголовок для диалога
-                alertDialog.setItems(choose, (dialog, item) -> {
-                    if (item == 0 && identifyButton.equals("0")) chatWork.makeNewName(selectedButton);
-                    if (item == 0 && identifyButton.equals("1")) messageService.serviceMessage("Вы не можете сменить имя группового чата!");
-                    if (item == 1) chatWork.deleteGroupChat(selectedButton);
-                    if (item == 2) Toast.makeText(getApplicationContext(),"Выбрано: " + choose[item], Toast.LENGTH_SHORT).show();
-                });
-                alertDialog.setCancelable(true);
-                return alertDialog.create();
-            default:
-                return null;
-        }
+    private void menuContact() {
+        AtomicInteger number = new AtomicInteger();
+        String[] choose = {"Переименовать контакт ?", "Удалить данный чат ?"};
+        if (identifyButton.equals("0")) choose[1] = String.format("Удалить чат с '%s' ?", selectedButton);
+        if (identifyButton.equals("1")) choose[1] = String.format("Выйти из группы '%s' ?", selectedButton);
+        alertDialog = new AlertDialog.Builder(this);
+        alertDialog.setTitle("Выбор действия:");
+        alertDialog.setSingleChoiceItems(choose, -1, (dialog, item) -> {
+            if (choose[item].equals("Переименовать контакт ?")) number.set(0);
+            if (choose[item].equals(String.format("Удалить чат с '%s' ?", selectedButton)) ||
+                    choose[item].equals(String.format("Выйти из группы '%s' ?", selectedButton))) number.set(1);
+        });
+        alertDialog.setPositiveButton("OK", (dialog, item) -> {
+            if (number.get() == 0 && identifyButton.equals("0")) chatWork.makeNewName(selectedButton);
+            if (number.get() == 0 && identifyButton.equals("1")) messageService.serviceMessage("Вы не можете сменить имя группового чата!");
+            if (number.get() == 1) chatWork.deleteGroupChat(selectedButton);
+        });
+        alertDialog.setNegativeButton("Отмена", (dialog, item) ->
+                Toast.makeText(getApplicationContext(), "Отмена действия ...", Toast.LENGTH_SHORT).show());
+        alertDialog.setCancelable(true);
+        alertDialog.show();
     }
 
     private void openDialogPass() {
