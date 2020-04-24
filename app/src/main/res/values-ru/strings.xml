@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Messenger</string>
-    <string name="settings">Настройки</string>
+    <string name="about">О Приложении</string>
     <string name="send">Send</string>
     <string name="auth">Логин</string>
     <string name="create_group_chat">Создать групповой чат</string>

@@ -3,9 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="ru.anatomica.messenger.MainActivity">
     <item
-        android:id="@+id/btn_settings"
+        android:id="@+id/btn_about"
         android:orderInCategory="100"
-        android:title="@string/settings"
+        android:title="@string/about"
         app:showAsAction="never" />
     <item
         android:id="@+id/btn_create_group"

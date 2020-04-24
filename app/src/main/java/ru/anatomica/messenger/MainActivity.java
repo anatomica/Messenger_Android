@@ -258,8 +258,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.btn_settings:
-                return true;
+            case R.id.btn_about:
+                about();
+                break;
             case R.id.btn_create_group:
                 chatWork.createGroup();
                 break;
@@ -758,6 +759,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
+        alertDialog.show();
+    }
+
+    private void about() {
+        alertDialog = new AlertDialog.Builder(MainActivity.this);
+        alertDialog.setTitle("О приложении:");
+        alertDialog.setMessage("Версия 4.0 \nMaxim Fomin © 2019 - 2020 \nВсе права защищены.");
+        alertDialog.setIcon(R.drawable.ic_stat_ic_notification);
+        alertDialog.setPositiveButton("ОК", (dialog, which) -> { dialog.cancel();});
         alertDialog.show();
     }
 
