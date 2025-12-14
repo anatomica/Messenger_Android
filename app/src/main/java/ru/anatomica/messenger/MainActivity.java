@@ -259,62 +259,46 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.btn_about:
-                about();
-                break;
-            case R.id.btn_create_group:
-                chatWork.createGroup();
-                break;
-            case R.id.btn_join_group:
-                chatWork.joinToGroup();
-                break;
-            case R.id.btn_delete_group:
-                chatWork.deleteGroup();
-                break;
-            case R.id.btn_clear_nicks:
-                clearSavedNick();
-                break;
-            case R.id.btn_restore_contacts:
-                chatWork.restoreContacts();
-                break;
-            case R.id.btn_clear_all:
-                clearAllChat();
-                break;
-            case R.id.btn_clear:
-                clearChat();
-                break;
-            case R.id.btn_changeNick:
-                changeNick();
-                break;
-            case R.id.btn_logout:
-                logout();
-                break;
-            case R.id.btn_exit:
-                shutdown();
-                break;
+        int id = item.getItemId();
+        if (id == R.id.btn_about) {
+            about();
+        } else if (id == R.id.btn_create_group) {
+            chatWork.createGroup();
+        } else if (id == R.id.btn_join_group) {
+            chatWork.joinToGroup();
+        } else if (id == R.id.btn_delete_group) {
+            chatWork.deleteGroup();
+        } else if (id == R.id.btn_clear_nicks) {
+            clearSavedNick();
+        } else if (id == R.id.btn_restore_contacts) {
+            chatWork.restoreContacts();
+        } else if (id == R.id.btn_clear_all) {
+            clearAllChat();
+        } else if (id == R.id.btn_clear) {
+            clearChat();
+        } else if (id == R.id.btn_changeNick) {
+            changeNick();
+        } else if (id == R.id.btn_logout) {
+            logout();
+        } else if (id == R.id.btn_exit) {
+            shutdown();
         }
         return super.onOptionsItemSelected(item);
     }
 
     public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.btn_register:
-                messageService.changeToReg();
-                break;
-            case R.id.btn_login:
-                messageService.changeToLogin();
-                break;
-            case R.id.btn_reg:
-                register();
-                register();
-                break;
-            case R.id.btn_auth:
-                sendAuth();
-                break;
-            case R.id.btn_send:
-                sendMessage();
-                break;
+        int id = view.getId();
+        if (id == R.id.btn_register) {
+            messageService.changeToReg();
+        } else if (id == R.id.btn_login) {
+            messageService.changeToLogin();
+        } else if (id == R.id.btn_reg) {
+            register();
+            register();
+        } else if (id == R.id.btn_auth) {
+            sendAuth();
+        } else if (id == R.id.btn_send) {
+            sendMessage();
         }
     }
 

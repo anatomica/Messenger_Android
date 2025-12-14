@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    namespace "ru.anatomica.messenger"
+    compileSdk 35
     lintOptions {
         checkReleaseBuilds false
         // Or, if you prefer, you can continue to check for errors in release builds,
@@ -13,10 +13,11 @@ android {
     defaultConfig {
         applicationId "ru.anatomica.messenger"
         minSdkVersion 19
-        targetSdkVersion 29
-        versionCode 20
-        versionName "4.0"
+        targetSdkVersion 35
+        versionCode 21
+        versionName "5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -44,5 +45,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'androidx.mediarouter:mediarouter:1.1.0'
-    implementation 'androidx.work:work-runtime:2.4.0'
+    implementation 'androidx.work:work-runtime:2.9.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
 }

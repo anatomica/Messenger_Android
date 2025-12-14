@@ -33,6 +33,10 @@ public class MessageService extends IntentService {
     private Network network;
     public String nickname;
 
+    MessageService() {
+        super(MESSAGING_SERVICE_NAME);
+    }
+
     MessageService(MainActivity mainActivity, boolean needStopServerOnClosed) {
         super(MESSAGING_SERVICE_NAME);
         this.textArea = mainActivity.textArea;
