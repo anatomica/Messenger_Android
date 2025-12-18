@@ -1,33 +1,63 @@
 package ru.anatomica.messenger;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewManager;
-import android.widget.*;
-import com.google.firebase.iid.FirebaseInstanceId;
-import java.io.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import ru.anatomica.messenger.gson.*;
+import java.util.concurrent.atomic.AtomicReference;
+
+import ru.anatomica.messenger.gson.AuthMessage;
+import ru.anatomica.messenger.gson.ChangeNick;
+import ru.anatomica.messenger.gson.GroupMessage;
+import ru.anatomica.messenger.gson.Message;
+import ru.anatomica.messenger.gson.PrivateMessage;
+import ru.anatomica.messenger.gson.RegisterMessage;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+    private static final int PERMISSION_REQUEST_CODE = 100;
 
     public CoordinatorLayout mainLayout;
     public ConstraintLayout changeLayout;
@@ -135,13 +165,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        refreshToken = FirebaseInstanceId.getInstance().getToken();
+        checkNotificationPermission();
 
-//        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(this, instanceIdResult -> {
-//            refreshToken = instanceIdResult.getToken();
-//            Log.e("refreshToken", refreshToken);
-//        });
-//        intent = new Intent(this, MainActivity.class);
+        refreshToken = getFCMToken(login, password);
 
         spinner = findViewById(R.id.spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -159,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     clientList();
                 }
             }
+
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
@@ -309,7 +336,7 @@ public class MainActivity extends AppCompatActivity {
             chatHistory = new ChatHistory(this);
             chatWork = new ChatWork(this, messageService);
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -317,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             fos = openFileOutput(nameFile + fileHistory, Context.MODE_APPEND);
             fis = openFileInput(nameFile + fileHistory);
-            if (fis.available() >= 0 && !nameFile.equals("")) {
+            if (fis.available() >= 0 && !nameFile.isEmpty()) {
                 chatHistory.loadChatHistory(nameFile + fileHistory);
                 messageService.loginToMessage();
             }
@@ -326,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
                 createBtn();
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -334,16 +361,16 @@ public class MainActivity extends AppCompatActivity {
         try {
             fos = openFileOutput("AllContacts.txt", Context.MODE_APPEND);
             fis = openFileInput("AllContacts.txt");
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8));
             String tmp;
             while ((tmp = br.readLine()) != null) {
                 if (tmp.equals(identifyButOnCreate + nameFile)) return false;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
-        if (!identifyButOnCreate.equals("") && !nameFile.equals(""))
-        chatHistory.writeChatHistory(identifyButOnCreate + nameFile);
+        if (!identifyButOnCreate.isEmpty() && !nameFile.isEmpty())
+            chatHistory.writeChatHistory(identifyButOnCreate + nameFile);
         return true;
     }
 
@@ -359,13 +386,13 @@ public class MainActivity extends AppCompatActivity {
                 chatHistory.writeChatHistory("1 " + "Общий Чат");
                 chatWork.savePass("Общий Чат", "0");
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(fis, StandardCharsets.UTF_8));
             String tmp;
             while ((tmp = br.readLine()) != null) {
                 buttonName.add(tmp);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -378,9 +405,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void removeButton() {
-        if (buttons.size() > 0)
+        if (!buttons.isEmpty())
             for (int i = 0; i < buttons.size(); i++) {
-                ((ViewManager)buttons.get(i).getParent()).removeView(buttons.get(i));
+                ((ViewManager) buttons.get(i).getParent()).removeView(buttons.get(i));
             }
         buttons.clear();
     }
@@ -451,18 +478,23 @@ public class MainActivity extends AppCompatActivity {
     private void menuContact() {
         AtomicInteger number = new AtomicInteger();
         String[] choose = {"Переименовать контакт ?", "Удалить данный чат ?"};
-        if (identifyButton.equals("0")) choose[1] = String.format("Удалить чат с '%s' ?", selectedButton);
-        if (identifyButton.equals("1")) choose[1] = String.format("Выйти из группы '%s' ?", selectedButton);
+        if (identifyButton.equals("0"))
+            choose[1] = String.format("Удалить чат с '%s' ?", selectedButton);
+        if (identifyButton.equals("1"))
+            choose[1] = String.format("Выйти из группы '%s' ?", selectedButton);
         alertDialog = new AlertDialog.Builder(this);
         alertDialog.setTitle("Выбор действия:");
         alertDialog.setSingleChoiceItems(choose, -1, (dialog, item) -> {
             if (choose[item].equals("Переименовать контакт ?")) number.set(0);
             if (choose[item].equals(String.format("Удалить чат с '%s' ?", selectedButton)) ||
-                    choose[item].equals(String.format("Выйти из группы '%s' ?", selectedButton))) number.set(1);
+                    choose[item].equals(String.format("Выйти из группы '%s' ?", selectedButton)))
+                number.set(1);
         });
         alertDialog.setPositiveButton("OK", (dialog, item) -> {
-            if (number.get() == 0 && identifyButton.equals("0")) chatWork.makeNewName(selectedButton);
-            if (number.get() == 0 && identifyButton.equals("1")) messageService.serviceMessage("Вы не можете сменить имя группового чата!");
+            if (number.get() == 0 && identifyButton.equals("0"))
+                chatWork.makeNewName(selectedButton);
+            if (number.get() == 0 && identifyButton.equals("1"))
+                messageService.serviceMessage("Вы не можете сменить имя группового чата!");
             if (number.get() == 1) chatWork.deleteGroupChat(selectedButton);
         });
         alertDialog.setNegativeButton("Отмена", (dialog, item) ->
@@ -484,11 +516,11 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.setView(input);
         // alertDialog.setIcon(R.drawable.key);
         alertDialog.setPositiveButton("Верно!", (dialog, which) -> {
-                    String passGroup = input.getText().toString();
-                    if (passGroup.compareTo("") > 0) {
-                        chatWork.checkPassGroup(selectedButton, passGroup);
-                        chatWork.savePass(selectedButton, passGroup);
-                    }
+            String passGroup = input.getText().toString();
+            if (passGroup.compareTo("") > 0) {
+                chatWork.checkPassGroup(selectedButton, passGroup);
+                chatWork.savePass(selectedButton, passGroup);
+            }
         });
         alertDialog.setNegativeButton("Отменить!", (dialog, which) -> dialog.cancel());
         alertDialog.show();
@@ -559,7 +591,7 @@ public class MainActivity extends AppCompatActivity {
             fosLogin.close();
             fosPasswd.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         shutdown();
     }
@@ -568,7 +600,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             messageService.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -576,8 +608,8 @@ public class MainActivity extends AppCompatActivity {
         String loginText = loginReg.getText().toString();
         String passwordText = passReg.getText().toString();
         String nicknameText = nicknameReg.getText().toString();
-        if (nicknameText.equals("") || passwordText.equals("") ||
-                passwordText.equals(" ") || loginText.equals("") || loginText.equals(" ")) {
+        if (nicknameText.isEmpty() || passwordText.isEmpty() ||
+                passwordText.equals(" ") || loginText.isEmpty() || loginText.equals(" ")) {
             messageService.serviceMessage("Никнейм / Логин / Пароль не могут быть пустыми!");
             return;
         }
@@ -611,7 +643,7 @@ public class MainActivity extends AppCompatActivity {
             fosLogin = openFileOutput(login, Context.MODE_APPEND);
             fosPasswd = openFileOutput(password, Context.MODE_APPEND);
             fisLogin = openFileInput(login);
-            if (fisLogin.available() == 0 && loginTextOnLogin != null && !loginTextOnLogin.equals("")) {
+            if (fisLogin.available() == 0 && loginTextOnLogin != null && !loginTextOnLogin.isEmpty()) {
                 fosLogin = openFileOutput(login, Context.MODE_PRIVATE);
                 fosPasswd = openFileOutput(password, Context.MODE_PRIVATE);
                 fosLogin.write(loginTextOnLogin.getBytes());
@@ -620,7 +652,7 @@ public class MainActivity extends AppCompatActivity {
             fosLogin.close();
             fosPasswd.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -636,7 +668,7 @@ public class MainActivity extends AppCompatActivity {
             fosLogin.close();
             fisLogin.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -674,7 +706,7 @@ public class MainActivity extends AppCompatActivity {
             fosLogin.close();
             fosPasswd.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -685,7 +717,7 @@ public class MainActivity extends AppCompatActivity {
             fosClear = openFileOutput(selectedButton + fileHistory, Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -705,7 +737,7 @@ public class MainActivity extends AppCompatActivity {
                 fos.write(str.getBytes());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
@@ -716,7 +748,7 @@ public class MainActivity extends AppCompatActivity {
             fosClear = openFileOutput("AllContacts.txt", Context.MODE_PRIVATE);
             fosClear.write(str.getBytes());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
         loadAllContacts();
         createBtn();
@@ -751,9 +783,11 @@ public class MainActivity extends AppCompatActivity {
     private void about() {
         alertDialog = new AlertDialog.Builder(MainActivity.this);
         alertDialog.setTitle("О приложении:");
-        alertDialog.setMessage("Версия 4.0 \nMaxim Fomin © 2019 - 2020 \nВсе права защищены.");
-        alertDialog.setIcon(R.drawable.ic_stat_ic_notification);
-        alertDialog.setPositiveButton("ОК", (dialog, which) -> { dialog.cancel();});
+        alertDialog.setMessage("Версия 5.0 \nMaxim Fomin © 2019 - 2025 \nВсе права защищены.");
+        alertDialog.setIcon(R.drawable.ic_stat_notification);
+        alertDialog.setPositiveButton("ОК", (dialog, which) -> {
+            dialog.cancel();
+        });
         alertDialog.show();
     }
 
@@ -764,5 +798,53 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, messageService.clientListMessage.online);
         spinnerArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(spinnerArrayAdapter);
+    }
+
+    private String getFCMToken(String login, String password) {
+        AtomicReference<String> token = new AtomicReference<>("");
+
+        try {
+            fis = openFileInput(login);
+            if (fis.available() >= 0 && !login.isEmpty()) {
+                Thread thread = new Thread(() -> {
+                    try {
+                        String result = Tasks.await(FirebaseMessaging.getInstance().getToken(), 10, TimeUnit.SECONDS);
+                        token.set(result != null ? result : "");
+                    } catch (Exception e) {
+                        Log.w(TAG, "Fetching FCM registration token failed", e);
+                    }
+                });
+
+                thread.start();
+
+                try {
+                    thread.join(15000);
+                    if (thread.isAlive()) {
+                        Log.w(TAG, "Timeout waiting for FCM token");
+                    }
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Interrupted while waiting for FCM token", e);
+                    Thread.currentThread().interrupt();
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "This is the first time the application is launched, there is no login data");
+        }
+
+        String result = token.get();
+        Log.d(TAG, "FCM Token: " + result);
+        return result;
+    }
+
+    private void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        PERMISSION_REQUEST_CODE);
+            }
+        }
     }
 }

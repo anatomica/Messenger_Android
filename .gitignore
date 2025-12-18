@@ -12,3 +12,4 @@ gradlew.bat
 .cxx
 /gradle/
 /.vscode/
+/app/release/
